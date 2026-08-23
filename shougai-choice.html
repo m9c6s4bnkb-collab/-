@@ -121,7 +121,7 @@ function render(){
   quiz.innerHTML='';
   if(!pool.length){empty.style.display='block';return}
   empty.style.display='none';
-  const qi=pool[pos], item=Q[qi], prev=state.results[qi];
+  const qi=pool[pos], item=Q[qi], prev=(mode==='wrong'?null:state.results[qi]);
   const card=document.createElement('div');card.className='card';
   const meta=document.createElement('div');meta.className='meta';meta.textContent='問題 '+(pos+1)+' / '+pool.length;
   const q=document.createElement('div');q.className='q';q.textContent=item.q;
@@ -153,7 +153,7 @@ function showResult(qi,isCorrect,selected,card){
 }
 
 function answer(qi,selected,card){
-  if(state.results[qi]!==null)return;
+  if(mode!=='wrong' && state.results[qi]!==null)return;
   const ok=selected===Q[qi].answer;
   state.results[qi]=ok;save();showResult(qi,ok,selected,card);updateStats();
 }

@@ -99,7 +99,7 @@ function draw(){
   done=false;
   const q=pool[idx%pool.length];
   $('progress').textContent=`第 ${idx+1} 問 / ${pool.length} 問`;
-  $('cat').textContent=q[0];
+  $('cat').textContent='';
   $('question').textContent=q[1];
   $('answer').value='';
   $('feedback').style.display='none';

@@ -1,163 +1,42 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#111827">
-<title>障害者・障害児心理学｜一問一答</title>
-<style>
-:root {
-  color-scheme: light dark;
-  --bg:#f7f8fb; --card:#fff; --text:#182033; --muted:#64748b; --border:#e1e5ec;
-  --soft:#e9edf4; --blue:#2563eb; --green:#ecfdf5; --red:#fef2f2;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --bg:#111827; --card:#1f2937; --text:#f3f4f6; --muted:#9ca3af; --border:#374151; --soft:#273244; --green:#12352b; --red:#3b1d22; }
-}
-* { box-sizing:border-box; }
-body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif; }
-main { max-width:880px; margin:auto; padding:24px 14px 48px; }
-.header { display:flex; justify-content:space-between; gap:12px; align-items:end; flex-wrap:wrap; margin-bottom:16px; }
-.eyebrow { font-size:12px; color:var(--muted); }
-.progress { font-size:20px; font-weight:800; }
-.actions { display:flex; gap:7px; flex-wrap:wrap; }
-button { font:inherit; cursor:pointer; }
-.sub { min-height:42px; border:1px solid var(--border); background:var(--card); color:var(--text); border-radius:10px; padding:0 11px; font-size:13px; font-weight:750; }
-.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:14px; }
-.stats div { padding:9px 5px; text-align:center; background:var(--soft); border-radius:11px; }
-.stats b { font-size:19px; display:block; }
-.stats small { font-size:10px; color:var(--muted); }
-.card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:clamp(18px,5vw,30px); }
-.cat { font-size:12px; font-weight:800; color:var(--muted); margin-bottom:12px; }
-.question { font-size:clamp(19px,5vw,27px); font-weight:800; line-height:1.55; margin-bottom:22px; }
-label { font-size:13px; font-weight:750; display:block; margin-bottom:7px; }
-input { width:100%; font-size:16px; padding:14px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); }
-.primary,.next { width:100%; min-height:48px; border:0; border-radius:12px; font-weight:800; margin-top:11px; }
-.primary { background:var(--blue); color:white; }
-.next { background:var(--text); color:var(--bg); display:none; }
-.feedback { display:none; margin-top:15px; padding:14px; border-radius:12px; line-height:1.55; }
-.note { font-size:11px; color:var(--muted); margin-top:12px; line-height:1.5; }
-button:focus-visible,input:focus-visible { outline:3px solid #60a5fa; outline-offset:2px; }
-@media (max-width:430px) { .stats { grid-template-columns:repeat(2,1fr); } }
-
-.cat{display:none!important}
-</style>
-</head>
-<body>
-<main id="app">
-  <div class="header">
-    <div>
-      <div class="eyebrow">障害者・障害児心理学｜本文重要語まで出題</div>
-      <div id="progress" class="progress"></div>
-    </div>
-    <div class="actions">
-      <button id="all" class="sub" type="button">全問題</button>
-      <button id="shuffle" class="sub" type="button">ランダム</button>
-      <button id="wrong" class="sub" type="button">間違えた問題</button>
-    </div>
-  </div>
-
-  <div class="stats">
-    <div><b id="correct">0</b><small>正解</small></div>
-    <div><b id="rate">—</b><small>正答率</small></div>
-    <div><b id="mistakes">0</b><small>ミス</small></div>
-    <div><b id="total"></b><small>収録問題</small></div>
-  </div>
-
-  <section class="card">
-    <div id="cat" class="cat"></div>
-    <div id="question" class="question"></div>
-    <form id="form">
-      <label for="answer">答え</label>
-      <input id="answer" autocomplete="off" autocapitalize="off" placeholder="答えを入力してね">
-      <button class="primary" type="submit">答え合わせ</button>
-    </form>
-    <div id="feedback" class="feedback" aria-live="polite"></div>
-    <button id="next" class="next" type="button">次の問題 →</button>
-  </section>
-
-  <div class="note">代表的な表記ゆれ（例：WHO／世界保健機関、ASD／自閉スペクトラム症など）は正解として判定します。</div>
-</main>
-
-<script>
-const Q = [["障害者基本法", "障害者の自立及び社会参加の支援等のための施策を総合的・計画的に推進することを目的とする法律は？", ["障害者基本法"]], ["障害者基本法", "障害者基本法では、障害と何によって継続的に日常生活または社会生活に相当な制限を受ける者を障害者とする？", ["社会的障壁"]], ["障害者基本法", "社会的障壁とは社会における事物・制度・慣行・観念と、その他何を指す？", ["一切のもの", "その他一切のもの"]], ["ICF", "2001年にWHOが提唱した健康状態に関連した生活機能の分類は？", ["ICF", "国際生活機能分類"]], ["ICF", "ICFを提唱した機関は？", ["WHO", "世界保健機関"]], ["ICF", "ICFで心身の働きや身体の構成部位を意味する要素は？", ["心身機能身体構造", "心身機能・身体構造"]], ["ICF", "ICFで課題や行為の遂行を意味する要素は？", ["活動"]], ["ICF", "ICFで社会や家庭へのかかわりを意味する要素は？", ["参加"]], ["ICF", "ICFで生活機能に影響する、周囲の環境に関する要素は？", ["環境因子"]], ["ICF", "ICFで環境因子とともに生活機能に影響する本人側の要素は？", ["個人因子"]], ["ICF", "ICFは疾患・障害の有無にかかわらず誰を対象とする？", ["すべての人", "全ての人"]], ["障害者権利条約", "2006年に国連で採択された障害者の人権・基本的自由に関する国際条約は？", ["障害者の権利に関する条約", "障害者権利条約"]], ["障害者権利条約", "日本が障害者権利条約に署名した年は？", ["2007", "2007年"]], ["障害者権利条約", "日本が障害者権利条約を批准した年は？", ["2014", "2014年"]], ["障害者権利条約", "障害者権利条約では障害者・児を治療や保護の対象ではなく何の主体として捉える？", ["人権の主体"]], ["社会的障壁", "公共交通・道路・建物など移動面で困難をもたらすバリアは？", ["物理的障壁"]], ["社会的障壁", "社会のルールや制度によって機会の均等を奪うバリアは？", ["制度的障壁"]], ["社会的障壁", "情報の伝え方が不十分なため必要な情報を平等に得られないバリアは？", ["文化情報面の障壁"]], ["社会的障壁", "偏見・差別・無関心など障害のある人を受け入れないバリアは？", ["心の障壁"]], ["DSM・ICD", "アメリカ精神医学会による「精神疾患の分類と診断の手引」の略称は？", ["DSM"]], ["DSM・ICD", "DSMを作成している団体は？", ["アメリカ精神医学会"]], ["DSM・ICD", "DSMが採用している診断基準は？", ["操作的診断基準"]], ["DSM・ICD", "DSMでは病因論にあまり踏み込まず、何的・何的分類を行う？", ["症候学的記述学的分類", "症候学的・記述学的分類"]], ["DSM・ICD", "WHOによる「国際疾病分類」の略称は？", ["ICD"]], ["DSM・ICD", "ICDを作成している機関は？", ["WHO", "世界保健機関"]], ["DSM・ICD", "DSMが診断と分類を目的とするのに対し、ICDは何を想定して作成されている？", ["疫学調査"]], ["知的発達症", "先天性あるいは早期後天性の障害による知的発達の遅れを何という？", ["知的発達症"]], ["知的発達症", "知的発達症の適応行動を構成する3領域は概念的スキル・社会的スキルと何？", ["実用的スキル"]], ["知的発達症", "言葉の理解・表出、抽象的思考、実行機能などは何スキル？", ["概念的スキル"]], ["知的発達症", "対人関係の構築・維持、情動行動の調節などは何スキル？", ["社会的スキル"]], ["知的発達症", "食事・着衣・買い物・職業技能などは何スキル？", ["実用的スキル"]], ["知的発達症", "DSM-5では知的発達症の重症度を主に何の程度から特定する？", ["適応機能", "適応機能の程度"]], ["知的発達症", "ICD-11で知的障害に代わって採用されている名称は？", ["知的発達症群"]], ["知能指数", "精神年齢÷生活年齢×100で求めるIQは？", ["比率IQ", "比率知能指数"]], ["知能指数", "比率IQを考案した人物は？", ["シュテルン"]], ["知能指数", "同年齢平均を100、1標準偏差を15として表すIQは？", ["偏差IQ", "偏差知能指数"]], ["ビネー式", "1905年に世界初の知能検査を作成した2人は？", ["ビネーとシモン", "ビネーシモン", "ビネー・シモン"]], ["ビネー式", "ビネー式知能検査を実用化した人物は？", ["ターマン"]], ["ビネー式", "ビネー式知能検査は何に問題のある子どもの早期発見のため作られた？", ["知的な発達", "知的発達"]], ["田中ビネーⅤ", "田中ビネーⅤが改訂された年は？", ["2005", "2005年"]], ["田中ビネーⅤ", "田中ビネーⅤの問題数は全部で何問？", ["113", "113問"]], ["田中ビネーⅤ", "田中ビネーⅤの適応年齢は2歳から何まで？", ["成人"]], ["田中ビネーⅤ", "田中ビネーⅤで14歳以上に用いる指数は？", ["偏差知能指数", "DIQ", "偏差IQ"]], ["田中ビネーⅤ", "田中ビネーⅤの成人知能の4領域は、結晶性・流動性・記憶と何？", ["論理推理領域", "論理推理"]], ["田中ビネーⅤ", "1歳級の問題が解けない被検者のため田中ビネーⅤに導入された参考指標は？", ["発達チェック"]], ["ウェクスラー式", "ウェクスラー式知能検査を作成した人物は？", ["ウェクスラー"]], ["ウェクスラー式", "ウェクスラー式知能検査が作成された年は？", ["1939", "1939年"]], ["ウェクスラー式", "成人用ウェクスラー式知能検査は？", ["WAIS"]], ["ウェクスラー式", "児童用ウェクスラー式知能検査は？", ["WISC"]], ["ウェクスラー式", "幼児用ウェクスラー式知能検査は？", ["WPPSI"]], ["WISC-Ⅴ", "言葉の理解・語彙・知識・言語による推理を評価する指標は？", ["言語理解", "VCI"]], ["WISC-Ⅴ", "見た情報を正確に捉え空間的に構成する力を評価する指標は？", ["視空間", "VSI"]], ["WISC-Ⅴ", "新しい問題を論理的に考え解決する力を評価する指標は？", ["流動性推理", "FRI"]], ["WISC-Ⅴ", "情報を一時的に保持しながら処理する能力・集中力を評価する指標は？", ["ワーキングメモリー", "WMI"]], ["WISC-Ⅴ", "単純な課題を正確かつ素早く処理する能力を評価する指標は？", ["処理速度", "PSI"]], ["WISC-Ⅴ", "指標得点間に大きなばらつきがある状態は？", ["ディスクレパンシー"]], ["WISC-Ⅴ", "WISC-Ⅴの総合的な知能得点は？", ["FSIQ"]], ["知的障害の困難", "学習した知識・技能を別の場面へ応用することを何という？", ["般化"]], ["知的障害の困難", "失敗経験の蓄積によって意欲とともに低下しやすい、自分の価値に関する感覚は？", ["自尊心"]], ["知的障害の困難", "失敗経験の蓄積によって自尊心とともに低下しやすい「自分ならできる」という感覚は？", ["自己効力感"]], ["重複障害", "1人が盲・聾・知的障害・肢体不自由・病弱のうち2つ以上をあわせ有することを何という？", ["重複障害"]], ["重複障害", "重度の知的障害と重度の肢体不自由が重複している児童は？", ["重症心身障害児"]], ["発達障害者支援法", "発達障害者の早期発見とともに重要とされるものは？", ["早期支援"]], ["発達障害者支援法", "発達障害者支援法で発達障害児とは発達障害者のうち何歳未満？", ["18歳未満", "18"]], ["神経学的多様性", "脳や神経の働きの違いを人間の自然な多様性として捉える考えは？", ["神経学的多様性"]], ["神経学的多様性", "神経学的多様性では定型発達を多数派、非定型発達を何と捉える？", ["少数派"]], ["自閉スペクトラム症", "ウィングの三つ組は社会的相互作用の障害・コミュニケーションの障害と何？", ["イマジネーションの障害"]], ["自閉スペクトラム症", "DSM-5で自閉症やアスペルガー障害などを統一した診断名は？", ["自閉スペクトラム症", "ASD"]], ["ウィング3タイプ", "他者との関わりをあまり求めず一人を好むタイプは？", ["孤立型"]], ["ウィング3タイプ", "自分から関わりを求めないが相手からの働きかけは受け入れるタイプは？", ["受身型", "受け身型"]], ["ウィング3タイプ", "自分から積極的に関わるが一方的・独特になりやすいタイプは？", ["積極奇異型"]], ["高機能自閉症", "知的発達症を伴わない自閉症を指す、DSM-5では正式診断名ではない概念は？", ["高機能自閉症"]], ["自閉症の歴史", "早期幼児自閉症を報告した児童精神科医は？", ["カナー"]], ["自閉症の歴史", "カナーが報告した症例数は？", ["11", "11症例", "11例"]], ["自閉症の歴史", "自閉症の原因を親の育て方・性格・愛情不足などに求めた説は？", ["心因説", "心因論"]], ["自閉症の歴史", "自閉症児の親を「冷蔵庫マザー」と呼んだ人物は？", ["ベッテルハイム"]], ["自閉症の歴史", "ベッテルハイムが自閉症児の親を表現するために用いた呼称は？", ["冷蔵庫マザー"]], ["自閉症の歴史", "関わりの奇妙さや相互的会話の困難などを示す4症例を報告した小児科医は？", ["ハンスアスペルガー", "ハンス・アスペルガー", "アスペルガー"]], ["自閉症原因論", "1960年代に優勢となった、自閉症を脳の機能障害から捉える仮説は？", ["認知言語障害仮説", "認知・言語障害仮説"]], ["自閉症原因論", "遺伝子配列が同じでも装飾により発現のスイッチが変化するという考え方は？", ["エピジェネティクス"]], ["自閉症原因論", "遺伝子に加えられた装飾を何という？", ["エピゲノム"]], ["自閉症原因論", "現在、自閉症の原因について優勢とされるのは遺伝と何との相互作用という見方？", ["環境", "環境因"]], ["共同注意", "他者が注意を向ける対象に自分も注意を向けたり、指差しで他者の注意を誘導したりする現象は？", ["共同注意"]], ["共同注意", "定型発達で視線追従や指差し理解など注意追従がみられるのは何か月頃？", ["8～11か月", "8〜11か月", "8-11か月"]], ["共同注意", "定型発達で動作模倣や提示手渡しなど行動追従がみられるのは何か月頃？", ["10～12か月", "10〜12か月", "10-12か月"]], ["共同注意", "定型発達で指差し産出など注意操作がみられるのは何か月頃？", ["13～18か月", "13〜18か月", "13-18か月"]], ["TEACCH", "自閉スペクトラムの人のための治療教育プログラムTEACCHを考案した人物は？", ["ショップラー"]], ["TEACCH", "その人が生活しやすいよう特性に沿って環境を整えることを何という？", ["構造化"]], ["TEACCH", "TEACCHの4つの構造化は物理的・スケジュール・作業活動と何？", ["視覚的な構造化", "視覚的構造化"]], ["ADHD", "年齢・発達水準につり合わない不注意・多動・衝動性を特徴とする障害は？", ["注意欠如多動症", "ADHD"]], ["ADHD", "ADHDの3つの特徴は不注意・多動と何？", ["衝動性"]], ["ADHD", "ADHDの病態モデルは実行機能障害・報酬系の低下と何？", ["時間的処理の障害", "時間的処理"]], ["ADHD", "ADHD児では小学校3・4年頃になると比較的落ち着く症状は？", ["多動性", "多動"]], ["ADHD", "多動性が落ち着いても継続的にみられるとされる症状は？", ["不注意症状", "不注意"]], ["ADHD", "ADHDへの支援として環境調整とともに資料で挙げられる親への訓練は？", ["ペアレントトレーニング", "ペアレント・トレーニング"]], ["限局性学習症", "全般的な知的発達に遅れはないが特定の学習能力の習得・使用に著しい困難を示す状態は？", ["限局性学習症"]], ["限局性学習症", "医学的用語として挙げられる3つは読字障害・書字障害と何？", ["算数障害"]], ["限局性学習症", "読みの困難の背景として挙げられる、言葉の音を認識・操作する能力の弱さは？", ["音韻認識"]], ["ディスレクシア", "神経生物学的原因に起因し、正確・流暢な単語認識などの困難を特徴とする特異的学習障害は？", ["ディスレクシア"]], ["ディスレクシア", "文字や文字つづりを音声化することを何という？", ["デコーディング"]], ["ディスレクシア", "ディスレクシアの困難は言語の何的要素の障害によるとされる？", ["音韻的要素", "音韻"]], ["教育", "「統合」を意味し、障害のある子とない子の学習・生活の場を統合する教育は？", ["インテグレーション教育", "インテグレーション"]], ["教育", "「包括」を意味し、あらゆる子どもの特別な教育的ニーズに対応する教育は？", ["インクルージョン教育", "インクルーシブ教育", "インクルージョン"]], ["特別支援教育", "特殊教育から特別支援教育へ転換された改正学校教育法の施行年は？", ["2007", "2007年"]], ["特別支援教育", "盲学校・聾学校・養護学校を一本化した学校は？", ["特別支援学校"]], ["通級指導", "通常学級に在籍しながら必要な時間だけ特別な指導を受ける教育形態は？", ["通級指導"]], ["通級指導", "通級指導で行われる、障害による学習上・生活上の困難を改善するための活動は？", ["自立活動"]], ["二次障害", "発達障害の特徴への周囲の不理解や否定的体験から自尊心低下・不適応などが生じることは？", ["二次障害"]], ["障害者差別解消法", "障害者への差別的取扱いと合理的配慮の不提供の禁止を定める法律は？", ["障害者差別解消法"]], ["障害者差別解消法", "障害を理由に排除したりサービス提供を拒否する差別は？", ["直接差別"]], ["障害者差別解消法", "障害があると難しい参加要件を設ける差別は？", ["間接差別"]], ["合理的配慮", "社会的障壁を除去するため、過重な負担でない範囲で行う必要かつ合理的な配慮は？", ["合理的配慮"]], ["合理的配慮", "合理的配慮が基づく、障害を個人と社会的障壁との相互作用で捉えるモデルは？", ["社会モデル"]], ["合理的配慮", "合理的配慮の提供で本人と配慮を求められた側との間に重要なものは？", ["建設的な対話", "建設的対話"]], ["障害者雇用促進法", "障害者の職業安定を目的とする法律は？", ["障害者雇用促進法"]], ["障害者雇用促進法", "法定雇用率未達成の事業主から徴収されるものは？", ["障害者雇用納付金"]], ["障害者雇用促進法", "法定雇用率を超えて雇用する事業主に支給されるものは？", ["障害者雇用調整金"]], ["障害者雇用促進法", "5名以上の障害者を雇用する事業所で選任が義務づけられる相談員は？", ["障害者職業生活相談員"]], ["情緒障害", "子どもが情緒面の問題によって社会生活に適応できない状態を大枠で何という？", ["情緒障害"]], ["情緒障害", "チックや爪かみなどは情緒障害の状態のうち何性習癖？", ["神経性習癖"]], ["児童心理治療施設", "社会生活への適応が困難な児童に心理治療・生活指導を行う児童福祉施設は？", ["児童心理治療施設"]], ["児童心理治療施設", "施設生活・学校生活・個人治療・家族治療・社会体験などを有機的に結びつける治療は？", ["総合環境療法"]], ["児童心理治療施設", "児童心理治療施設では必要がある場合、何歳まで措置延長が可能？", ["20歳", "20"]], ["場面緘黙", "家庭では話せるが特定の社会的状況で一貫して発話困難になる状態は？", ["場面緘黙", "選択性かん黙", "選択性緘黙"]], ["場面緘黙", "場面緘黙で「話さない」ことで一時的に不安が減るため維持されやすい行動は？", ["回避行動"]], ["場面緘黙", "場面緘黙の治療として資料に挙げられる心理療法は行動療法と何？", ["認知行動療法"]], ["チック", "筋肉の一部の不規則・突発的な運動や発声が一定期間続く状態は？", ["チック"]], ["チック", "激しいまばたきや顔をしかめるなどは何チック？", ["運動チック"]], ["チック", "咳払いやうなり声などは何チック？", ["音声チック"]], ["チック", "2種以上の運動チックと音声チックが1年以上続く状態は？", ["トゥレット症"]], ["チック", "相手の言葉を同様に繰り返す症状は？", ["エコラリア", "反響言語"]], ["チック", "不適切な言葉などを意思に反して発してしまう症状として資料に挙げられているものは？", ["汚言症"]], ["チック", "チック前の「むずむずする」「出さないといけない」といった感覚は？", ["前駆衝動"]]];
-
-let pool=[...Q], idx=0, attempt=0, correct=0, wrong=new Set(), done=false;
-const $ = id => document.getElementById(id);
-const norm = x => String(x)
-  .toLowerCase()
-  .normalize('NFKC')
-  .replace(/[\s・･,，。\.\-ー_()（）「」『』\/]/g,'')
-  .replace(/〜/g,'～');
-
-function updateStats(){
-  $('correct').textContent=correct;
-  $('mistakes').textContent=wrong.size;
-  $('rate').textContent=attempt ? Math.round(correct/attempt*100)+'%' : '—';
-  $('total').textContent=Q.length;
-}
-
-function draw(){
-  if(!pool.length){
-    $('cat').textContent='復習';
-    $('question').textContent='間違えた問題はまだありません！';
-    $('form').style.display='none';
-    $('next').style.display='none';
-    $('progress').textContent='復習問題 0問';
-    return;
-  }
-  $('form').style.display='block';
-  done=false;
-  const q=pool[idx%pool.length];
-  $('progress').textContent=`第 ${idx+1} 問 / ${pool.length} 問`;
-  $('cat').textContent=q[0];
-  $('question').textContent=q[1];
-  $('answer').value='';
-  $('feedback').style.display='none';
-  $('next').style.display='none';
-  $('answer').focus();
-}
-
-$('form').addEventListener('submit', e => {
-  e.preventDefault();
-  if(done) return;
-  const v=$('answer').value.trim();
-  if(!v){
-    $('feedback').style.display='block';
-    $('feedback').style.background='#fff7ed';
-    $('feedback').style.color='#7c2d12';
-    $('feedback').textContent='答えを入力してね。';
-    return;
-  }
-  done=true; attempt++;
-  const q=pool[idx%pool.length];
-  const ok=q[2].some(a=>norm(a)===norm(v));
-  const oi=Q.indexOf(q);
-
-  if(ok){
-    correct++;
-    wrong.delete(oi);
-    $('feedback').style.background='var(--green)';
-    $('feedback').style.color='var(--text)';
-    $('feedback').innerHTML='<b style="font-size:31px">○ 正解！</b>';
-  } else {
-    wrong.add(oi);
-    $('feedback').style.background='var(--red)';
-    $('feedback').style.color='var(--text)';
-    $('feedback').innerHTML='<b style="font-size:29px">× 惜しい！</b><div style="margin-top:7px">正解：<strong>'+q[2][0]+'</strong></div>';
-  }
-  $('feedback').style.display='block';
-  $('next').style.display='block';
-  updateStats();
-});
-
-$('next').addEventListener('click',()=>{ idx=(idx+1)%pool.length; draw(); });
-$('shuffle').addEventListener('click',()=>{ pool=[...Q].sort(()=>Math.random()-.5); idx=0; draw(); });
-$('all').addEventListener('click',()=>{ pool=[...Q]; idx=0; draw(); });
-$('wrong').addEventListener('click',()=>{ pool=[...wrong].map(i=>Q[i]); idx=0; draw(); });
-
-updateStats();
-draw();
-</script>
-</body>
-</html>
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>障害者・障害児心理学｜基本・重要語133問</title><style>
+:root{--bg:#f7f8fb;--card:#fff;--text:#182033;--muted:#6b7a91;--border:#dfe5ee;--soft:#e9eef6;--blue:#2563eb;--green:#ecfdf5;--red:#fef2f2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif}
+main{max-width:880px;margin:auto;padding:24px 14px 50px}.eyebrow{font-size:12px;color:var(--muted)}#progress{font-size:20px;font-weight:850;margin-bottom:14px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}button{font:inherit;cursor:pointer}.sub{min-height:42px;border:1px solid var(--border);background:#fff;color:var(--text);border-radius:11px;padding:0 12px;font-size:13px;font-weight:800}.sub.active{background:#17191d;color:#fff;border-color:#17191d}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.stats div{padding:10px 5px;text-align:center;background:var(--soft);border-radius:12px}.stats b{font-size:20px;display:block}.stats small{font-size:10px;color:var(--muted)}
+.toolbar{margin-bottom:14px}.reset{border:1px solid var(--border);background:#fff;color:var(--blue);border-radius:10px;padding:9px 12px;font-weight:800}
+.card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:clamp(18px,5vw,30px)}.question{font-size:clamp(19px,5vw,27px);font-weight:820;line-height:1.6;margin-bottom:16px}
+.history{font-size:12px;color:var(--muted);background:#f6f8fb;border-radius:10px;padding:8px 10px;margin-bottom:18px}
+label{font-size:13px;font-weight:800;display:block;margin-bottom:7px}input{width:100%;font-size:16px;padding:14px;border-radius:12px;border:1px solid var(--border);background:#fff;color:var(--text)}
+.primary,.next{width:100%;min-height:48px;border:0;border-radius:12px;font-weight:850;margin-top:11px}.primary{background:var(--blue);color:#fff}.next{background:var(--text);color:#fff;display:none}
+.feedback{display:none;margin-top:15px;padding:14px;border-radius:12px;line-height:1.55}.empty{background:#fff;border:1px solid var(--border);border-radius:18px;padding:24px;text-align:center;color:var(--muted)}
+.note{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6}@media(max-width:430px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style></head><body><main>
+<div class="eyebrow">障害者・障害児心理学｜基本・重要語133問</div><div id="progress"></div>
+<div class="actions">
+<button class="sub active" data-mode="all">全問題</button><button class="sub" data-mode="random">ランダム</button><button class="sub" data-mode="wrongAny">間違えた問題</button><button class="sub" data-mode="wrong1">1回間違えた</button><button class="sub" data-mode="wrong2">2回間違えた</button><button class="sub" data-mode="wrong3plus">3回以上間違えた</button>
+</div>
+<div class="stats"><div><b id="correct">0</b><small>累積正解</small></div><div><b id="rate">—</b><small>正答率</small></div><div><b id="mistakes">0</b><small>累積ミス</small></div><div><b>133</b><small>収録問題</small></div></div>
+<div class="toolbar"><button id="reset" class="reset">学習記録をリセット</button></div>
+<section id="card" class="card"><div id="question" class="question"></div><div id="history" class="history"></div>
+<form id="form"><label for="answer">答え</label><input id="answer" autocomplete="off" autocapitalize="off" placeholder="答えを入力してね"><button class="primary" type="submit">答え合わせ</button></form>
+<div id="feedback" class="feedback"></div><button id="next" class="next">次の問題 →</button></section>
+<div id="empty" class="empty" style="display:none">この条件に当てはまる問題はまだありません。</div>
+<div class="note">同じ問題を何度でも解き直せます。正解・不正解・挑戦回数はブラウザに累積保存されます。</div>
+</main><script>
+const Q=[["障害者基本法", "障害者の自立及び社会参加の支援等のための施策を総合的・計画的に推進することを目的とする法律は？", ["障害者基本法"]], ["障害者基本法", "障害者基本法では、障害と何によって継続的に日常生活または社会生活に相当な制限を受ける者を障害者とする？", ["社会的障壁"]], ["障害者基本法", "社会的障壁とは社会における事物・制度・慣行・観念と、その他何を指す？", ["一切のもの", "その他一切のもの"]], ["ICF", "2001年にWHOが提唱した健康状態に関連した生活機能の分類は？", ["ICF", "国際生活機能分類"]], ["ICF", "ICFを提唱した機関は？", ["WHO", "世界保健機関"]], ["ICF", "ICFで心身の働きや身体の構成部位を意味する要素は？", ["心身機能身体構造", "心身機能・身体構造"]], ["ICF", "ICFで課題や行為の遂行を意味する要素は？", ["活動"]], ["ICF", "ICFで社会や家庭へのかかわりを意味する要素は？", ["参加"]], ["ICF", "ICFで生活機能に影響する、周囲の環境に関する要素は？", ["環境因子"]], ["ICF", "ICFで環境因子とともに生活機能に影響する本人側の要素は？", ["個人因子"]], ["ICF", "ICFは疾患・障害の有無にかかわらず誰を対象とする？", ["すべての人", "全ての人"]], ["障害者権利条約", "2006年に国連で採択された障害者の人権・基本的自由に関する国際条約は？", ["障害者の権利に関する条約", "障害者権利条約"]], ["障害者権利条約", "日本が障害者権利条約に署名した年は？", ["2007", "2007年"]], ["障害者権利条約", "日本が障害者権利条約を批准した年は？", ["2014", "2014年"]], ["障害者権利条約", "障害者権利条約では障害者・児を治療や保護の対象ではなく何の主体として捉える？", ["人権の主体"]], ["社会的障壁", "公共交通・道路・建物など移動面で困難をもたらすバリアは？", ["物理的障壁"]], ["社会的障壁", "社会のルールや制度によって機会の均等を奪うバリアは？", ["制度的障壁"]], ["社会的障壁", "情報の伝え方が不十分なため必要な情報を平等に得られないバリアは？", ["文化情報面の障壁"]], ["社会的障壁", "偏見・差別・無関心など障害のある人を受け入れないバリアは？", ["心の障壁"]], ["DSM・ICD", "アメリカ精神医学会による「精神疾患の分類と診断の手引」の略称は？", ["DSM"]], ["DSM・ICD", "DSMを作成している団体は？", ["アメリカ精神医学会"]], ["DSM・ICD", "DSMが採用している診断基準は？", ["操作的診断基準"]], ["DSM・ICD", "DSMでは病因論にあまり踏み込まず、何的・何的分類を行う？", ["症候学的記述学的分類", "症候学的・記述学的分類"]], ["DSM・ICD", "WHOによる「国際疾病分類」の略称は？", ["ICD"]], ["DSM・ICD", "ICDを作成している機関は？", ["WHO", "世界保健機関"]], ["DSM・ICD", "DSMが診断と分類を目的とするのに対し、ICDは何を想定して作成されている？", ["疫学調査"]], ["知的発達症", "先天性あるいは早期後天性の障害による知的発達の遅れを何という？", ["知的発達症"]], ["知的発達症", "知的発達症の適応行動を構成する3領域は概念的スキル・社会的スキルと何？", ["実用的スキル"]], ["知的発達症", "言葉の理解・表出、抽象的思考、実行機能などは何スキル？", ["概念的スキル"]], ["知的発達症", "対人関係の構築・維持、情動行動の調節などは何スキル？", ["社会的スキル"]], ["知的発達症", "食事・着衣・買い物・職業技能などは何スキル？", ["実用的スキル"]], ["知的発達症", "DSM-5では知的発達症の重症度を主に何の程度から特定する？", ["適応機能", "適応機能の程度"]], ["知的発達症", "ICD-11で知的障害に代わって採用されている名称は？", ["知的発達症群"]], ["知能指数", "精神年齢÷生活年齢×100で求めるIQは？", ["比率IQ", "比率知能指数"]], ["知能指数", "比率IQを考案した人物は？", ["シュテルン"]], ["知能指数", "同年齢平均を100、1標準偏差を15として表すIQは？", ["偏差IQ", "偏差知能指数"]], ["ビネー式", "1905年に世界初の知能検査を作成した2人は？", ["ビネーとシモン", "ビネーシモン", "ビネー・シモン"]], ["ビネー式", "ビネー式知能検査を実用化した人物は？", ["ターマン"]], ["ビネー式", "ビネー式知能検査は何に問題のある子どもの早期発見のため作られた？", ["知的な発達", "知的発達"]], ["田中ビネーⅤ", "田中ビネーⅤが改訂された年は？", ["2005", "2005年"]], ["田中ビネーⅤ", "田中ビネーⅤの問題数は全部で何問？", ["113", "113問"]], ["田中ビネーⅤ", "田中ビネーⅤの適応年齢は2歳から何まで？", ["成人"]], ["田中ビネーⅤ", "田中ビネーⅤで14歳以上に用いる指数は？", ["偏差知能指数", "DIQ", "偏差IQ"]], ["田中ビネーⅤ", "田中ビネーⅤの成人知能の4領域は、結晶性・流動性・記憶と何？", ["論理推理領域", "論理推理"]], ["田中ビネーⅤ", "1歳級の問題が解けない被検者のため田中ビネーⅤに導入された参考指標は？", ["発達チェック"]], ["ウェクスラー式", "ウェクスラー式知能検査を作成した人物は？", ["ウェクスラー"]], ["ウェクスラー式", "ウェクスラー式知能検査が作成された年は？", ["1939", "1939年"]], ["ウェクスラー式", "成人用ウェクスラー式知能検査は？", ["WAIS"]], ["ウェクスラー式", "児童用ウェクスラー式知能検査は？", ["WISC"]], ["ウェクスラー式", "幼児用ウェクスラー式知能検査は？", ["WPPSI"]], ["WISC-Ⅴ", "言葉の理解・語彙・知識・言語による推理を評価する指標は？", ["言語理解", "VCI"]], ["WISC-Ⅴ", "見た情報を正確に捉え空間的に構成する力を評価する指標は？", ["視空間", "VSI"]], ["WISC-Ⅴ", "新しい問題を論理的に考え解決する力を評価する指標は？", ["流動性推理", "FRI"]], ["WISC-Ⅴ", "情報を一時的に保持しながら処理する能力・集中力を評価する指標は？", ["ワーキングメモリー", "WMI"]], ["WISC-Ⅴ", "単純な課題を正確かつ素早く処理する能力を評価する指標は？", ["処理速度", "PSI"]], ["WISC-Ⅴ", "指標得点間に大きなばらつきがある状態は？", ["ディスクレパンシー"]], ["WISC-Ⅴ", "WISC-Ⅴの総合的な知能得点は？", ["FSIQ"]], ["知的障害の困難", "学習した知識・技能を別の場面へ応用することを何という？", ["般化"]], ["知的障害の困難", "失敗経験の蓄積によって意欲とともに低下しやすい、自分の価値に関する感覚は？", ["自尊心"]], ["知的障害の困難", "失敗経験の蓄積によって自尊心とともに低下しやすい「自分ならできる」という感覚は？", ["自己効力感"]], ["重複障害", "1人が盲・聾・知的障害・肢体不自由・病弱のうち2つ以上をあわせ有することを何という？", ["重複障害"]], ["重複障害", "重度の知的障害と重度の肢体不自由が重複している児童は？", ["重症心身障害児"]], ["発達障害者支援法", "発達障害者の早期発見とともに重要とされるものは？", ["早期支援"]], ["発達障害者支援法", "発達障害者支援法で発達障害児とは発達障害者のうち何歳未満？", ["18歳未満", "18"]], ["神経学的多様性", "脳や神経の働きの違いを人間の自然な多様性として捉える考えは？", ["神経学的多様性"]], ["神経学的多様性", "神経学的多様性では定型発達を多数派、非定型発達を何と捉える？", ["少数派"]], ["自閉スペクトラム症", "ウィングの三つ組は社会的相互作用の障害・コミュニケーションの障害と何？", ["イマジネーションの障害"]], ["自閉スペクトラム症", "DSM-5で自閉症やアスペルガー障害などを統一した診断名は？", ["自閉スペクトラム症", "ASD"]], ["ウィング3タイプ", "他者との関わりをあまり求めず一人を好むタイプは？", ["孤立型"]], ["ウィング3タイプ", "自分から関わりを求めないが相手からの働きかけは受け入れるタイプは？", ["受身型", "受け身型"]], ["ウィング3タイプ", "自分から積極的に関わるが一方的・独特になりやすいタイプは？", ["積極奇異型"]], ["高機能自閉症", "知的発達症を伴わない自閉症を指す、DSM-5では正式診断名ではない概念は？", ["高機能自閉症"]], ["自閉症の歴史", "早期幼児自閉症を報告した児童精神科医は？", ["カナー"]], ["自閉症の歴史", "カナーが報告した症例数は？", ["11", "11症例", "11例"]], ["自閉症の歴史", "自閉症の原因を親の育て方・性格・愛情不足などに求めた説は？", ["心因説", "心因論"]], ["自閉症の歴史", "自閉症児の親を「冷蔵庫マザー」と呼んだ人物は？", ["ベッテルハイム"]], ["自閉症の歴史", "ベッテルハイムが自閉症児の親を表現するために用いた呼称は？", ["冷蔵庫マザー"]], ["自閉症の歴史", "関わりの奇妙さや相互的会話の困難などを示す4症例を報告した小児科医は？", ["ハンスアスペルガー", "ハンス・アスペルガー", "アスペルガー"]], ["自閉症原因論", "1960年代に優勢となった、自閉症を脳の機能障害から捉える仮説は？", ["認知言語障害仮説", "認知・言語障害仮説"]], ["自閉症原因論", "遺伝子配列が同じでも装飾により発現のスイッチが変化するという考え方は？", ["エピジェネティクス"]], ["自閉症原因論", "遺伝子に加えられた装飾を何という？", ["エピゲノム"]], ["自閉症原因論", "現在、自閉症の原因について優勢とされるのは遺伝と何との相互作用という見方？", ["環境", "環境因"]], ["共同注意", "他者が注意を向ける対象に自分も注意を向けたり、指差しで他者の注意を誘導したりする現象は？", ["共同注意"]], ["共同注意", "定型発達で視線追従や指差し理解など注意追従がみられるのは何か月頃？", ["8～11か月", "8〜11か月", "8-11か月"]], ["共同注意", "定型発達で動作模倣や提示手渡しなど行動追従がみられるのは何か月頃？", ["10～12か月", "10〜12か月", "10-12か月"]], ["共同注意", "定型発達で指差し産出など注意操作がみられるのは何か月頃？", ["13～18か月", "13〜18か月", "13-18か月"]], ["TEACCH", "自閉スペクトラムの人のための治療教育プログラムTEACCHを考案した人物は？", ["ショップラー"]], ["TEACCH", "その人が生活しやすいよう特性に沿って環境を整えることを何という？", ["構造化"]], ["TEACCH", "TEACCHの4つの構造化は物理的・スケジュール・作業活動と何？", ["視覚的な構造化", "視覚的構造化"]], ["ADHD", "年齢・発達水準につり合わない不注意・多動・衝動性を特徴とする障害は？", ["注意欠如多動症", "ADHD"]], ["ADHD", "ADHDの3つの特徴は不注意・多動と何？", ["衝動性"]], ["ADHD", "ADHDの病態モデルは実行機能障害・報酬系の低下と何？", ["時間的処理の障害", "時間的処理"]], ["ADHD", "ADHD児では小学校3・4年頃になると比較的落ち着く症状は？", ["多動性", "多動"]], ["ADHD", "多動性が落ち着いても継続的にみられるとされる症状は？", ["不注意症状", "不注意"]], ["ADHD", "ADHDへの支援として環境調整とともに資料で挙げられる親への訓練は？", ["ペアレントトレーニング", "ペアレント・トレーニング"]], ["限局性学習症", "全般的な知的発達に遅れはないが特定の学習能力の習得・使用に著しい困難を示す状態は？", ["限局性学習症"]], ["限局性学習症", "医学的用語として挙げられる3つは読字障害・書字障害と何？", ["算数障害"]], ["限局性学習症", "読みの困難の背景として挙げられる、言葉の音を認識・操作する能力の弱さは？", ["音韻認識"]], ["ディスレクシア", "神経生物学的原因に起因し、正確・流暢な単語認識などの困難を特徴とする特異的学習障害は？", ["ディスレクシア"]], ["ディスレクシア", "文字や文字つづりを音声化することを何という？", ["デコーディング"]], ["ディスレクシア", "ディスレクシアの困難は言語の何的要素の障害によるとされる？", ["音韻的要素", "音韻"]], ["教育", "「統合」を意味し、障害のある子とない子の学習・生活の場を統合する教育は？", ["インテグレーション教育", "インテグレーション"]], ["教育", "「包括」を意味し、あらゆる子どもの特別な教育的ニーズに対応する教育は？", ["インクルージョン教育", "インクルーシブ教育", "インクルージョン"]], ["特別支援教育", "特殊教育から特別支援教育へ転換された改正学校教育法の施行年は？", ["2007", "2007年"]], ["特別支援教育", "盲学校・聾学校・養護学校を一本化した学校は？", ["特別支援学校"]], ["通級指導", "通常学級に在籍しながら必要な時間だけ特別な指導を受ける教育形態は？", ["通級指導"]], ["通級指導", "通級指導で行われる、障害による学習上・生活上の困難を改善するための活動は？", ["自立活動"]], ["二次障害", "発達障害の特徴への周囲の不理解や否定的体験から自尊心低下・不適応などが生じることは？", ["二次障害"]], ["障害者差別解消法", "障害者への差別的取扱いと合理的配慮の不提供の禁止を定める法律は？", ["障害者差別解消法"]], ["障害者差別解消法", "障害を理由に排除したりサービス提供を拒否する差別は？", ["直接差別"]], ["障害者差別解消法", "障害があると難しい参加要件を設ける差別は？", ["間接差別"]], ["合理的配慮", "社会的障壁を除去するため、過重な負担でない範囲で行う必要かつ合理的な配慮は？", ["合理的配慮"]], ["合理的配慮", "合理的配慮が基づく、障害を個人と社会的障壁との相互作用で捉えるモデルは？", ["社会モデル"]], ["合理的配慮", "合理的配慮の提供で本人と配慮を求められた側との間に重要なものは？", ["建設的な対話", "建設的対話"]], ["障害者雇用促進法", "障害者の職業安定を目的とする法律は？", ["障害者雇用促進法"]], ["障害者雇用促進法", "法定雇用率未達成の事業主から徴収されるものは？", ["障害者雇用納付金"]], ["障害者雇用促進法", "法定雇用率を超えて雇用する事業主に支給されるものは？", ["障害者雇用調整金"]], ["障害者雇用促進法", "5名以上の障害者を雇用する事業所で選任が義務づけられる相談員は？", ["障害者職業生活相談員"]], ["情緒障害", "子どもが情緒面の問題によって社会生活に適応できない状態を大枠で何という？", ["情緒障害"]], ["情緒障害", "チックや爪かみなどは情緒障害の状態のうち何性習癖？", ["神経性習癖"]], ["児童心理治療施設", "社会生活への適応が困難な児童に心理治療・生活指導を行う児童福祉施設は？", ["児童心理治療施設"]], ["児童心理治療施設", "施設生活・学校生活・個人治療・家族治療・社会体験などを有機的に結びつける治療は？", ["総合環境療法"]], ["児童心理治療施設", "児童心理治療施設では必要がある場合、何歳まで措置延長が可能？", ["20歳", "20"]], ["場面緘黙", "家庭では話せるが特定の社会的状況で一貫して発話困難になる状態は？", ["場面緘黙", "選択性かん黙", "選択性緘黙"]], ["場面緘黙", "場面緘黙で「話さない」ことで一時的に不安が減るため維持されやすい行動は？", ["回避行動"]], ["場面緘黙", "場面緘黙の治療として資料に挙げられる心理療法は行動療法と何？", ["認知行動療法"]], ["チック", "筋肉の一部の不規則・突発的な運動や発声が一定期間続く状態は？", ["チック"]], ["チック", "激しいまばたきや顔をしかめるなどは何チック？", ["運動チック"]], ["チック", "咳払いやうなり声などは何チック？", ["音声チック"]], ["チック", "2種以上の運動チックと音声チックが1年以上続く状態は？", ["トゥレット症"]], ["チック", "相手の言葉を同様に繰り返す症状は？", ["エコラリア", "反響言語"]], ["チック", "不適切な言葉などを意思に反して発してしまう症状として資料に挙げられているものは？", ["汚言症"]], ["チック", "チック前の「むずむずする」「出さないといけない」といった感覚は？", ["前駆衝動"]]];const KEY="shougai_qa_basic_history_v2";
+const $=id=>document.getElementById(id);const norm=x=>String(x).toLowerCase().normalize('NFKC').replace(/[\s・･,，。\.\-ー_()（）「」『』\/]/g,'').replace(/〜/g,'～');
+const fresh=()=>({correct:Array(Q.length).fill(0),wrong:Array(Q.length).fill(0),attempts:Array(Q.length).fill(0)});
+let state;try{let s=JSON.parse(localStorage.getItem(KEY)||'null');state=s&&s.correct?.length===Q.length?s:fresh()}catch(e){state=fresh()}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));let mode='all',pool=[],idx=0,locked=false;
+function rebuild(){let ids=[...Array(Q.length).keys()];if(mode==='all')pool=ids;else if(mode==='random'){pool=[...ids];for(let i=pool.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}}else if(mode==='wrongAny')pool=ids.filter(i=>state.wrong[i]>=1);else if(mode==='wrong1')pool=ids.filter(i=>state.wrong[i]===1);else if(mode==='wrong2')pool=ids.filter(i=>state.wrong[i]===2);else pool=ids.filter(i=>state.wrong[i]>=3);idx=0}
+function stats(){let c=state.correct.reduce((a,b)=>a+b,0),w=state.wrong.reduce((a,b)=>a+b,0),a=c+w;$('correct').textContent=c;$('mistakes').textContent=w;$('rate').textContent=a?Math.round(c/a*100)+'%':'—'}
+function draw(){if(!pool.length){$('card').style.display='none';$('empty').style.display='block';$('progress').textContent='該当する問題 0問';stats();return}$('card').style.display='block';$('empty').style.display='none';locked=false;let qi=pool[idx],q=Q[qi];$('progress').textContent=`第 ${idx+1} 問 / ${pool.length} 問`;$('question').textContent=q[1];$('history').textContent=`この問題の履歴：○ ${state.correct[qi]}回 ／ × ${state.wrong[qi]}回 ／ 挑戦 ${state.attempts[qi]}回`;$('answer').value='';$('feedback').style.display='none';$('next').style.display='none';stats()}
+$('form').addEventListener('submit',e=>{e.preventDefault();if(locked)return;let v=$('answer').value.trim();if(!v)return;let qi=pool[idx],q=Q[qi],ok=q[2].some(a=>norm(a)===norm(v));locked=true;state.attempts[qi]++;if(ok)state.correct[qi]++;else state.wrong[qi]++;save();$('feedback').style.display='block';if(ok){$('feedback').style.background='var(--green)';$('feedback').innerHTML='<b style="font-size:30px">○ 正解！</b>'}else{$('feedback').style.background='var(--red)';$('feedback').innerHTML='<b style="font-size:28px">× 惜しい！</b><div style="margin-top:7px">正解：<strong>'+q[2][0]+'</strong></div>'}$('history').textContent=`この問題の履歴：○ ${state.correct[qi]}回 ／ × ${state.wrong[qi]}回 ／ 挑戦 ${state.attempts[qi]}回`;$('next').style.display='block';stats()});
+$('next').addEventListener('click',()=>{idx=(idx+1)%pool.length;draw()});
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('active'));b.classList.add('active');mode=b.dataset.mode;rebuild();draw()}));
+$('reset').addEventListener('click',()=>{if(confirm('学習記録をすべて消しますか？')){state=fresh();save();rebuild();draw()}});
+rebuild();draw();
+</script></body></html>

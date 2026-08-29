@@ -13,7 +13,7 @@
 <section class="card" id="introCard"><h1>心理学 英単語問題集</h1><div class="sub">GitHub Pagesでそのまま使える1ファイル版。見出し語に加えて、PDFの日本語訳欄に載っている関連語・派生語も収録しています。臨床心理学・精神医学、発達、研究法・統計、社会、感覚・知覚・認知、学習、生理・神経、性格・知能、動機づけ・感情をまとめた版です。</div><div class="note" id="countNote"></div></section>
 <section class="card" id="menuCard"><div class="controls">
 <div><label>問題タイプ</label><select id="mode"><option value="ja4">英語 → 日本語（4択）</option><option value="ja1">英語 → 日本語（一問一答）</option><option value="pos4">英語 → 品詞（選択式）</option><option value="pos1">英語 → 品詞（一問一答）</option></select></div>
-<div><label>出題範囲</label><select id="scope"><option value="all">すべて</option><option value="main">見出し語のみ</option><option value="related">関連語・派生語のみ</option><option value="wrong">★ 間違えた問題だけ</option><option value="wrong1">★ 1回以上間違えた問題</option><option value="wrong2">★ 2回以上間違えた問題</option></select></div>
+<div><label>出題範囲</label><select id="scope"><option value="all">すべて</option><option value="main">見出し語のみ</option><option value="related">関連語・派生語のみ</option><option value="unanswered">未回答の問題だけ</option><option value="wrong">★ 間違えた問題だけ</option><option value="wrong1">★ 1回以上間違えた問題</option><option value="wrong2">★ 2回以上間違えた問題</option></select></div>
 </div><div class="actions"><button class="btn primary" id="start">出題開始 / 次の問題</button><button class="btn ghost" id="shuffle">ランダムで次へ</button><button class="btn danger" id="reset">学習データをリセット</button></div></section>
 <section class="card stats" id="statsCard"><div class="stat"><strong id="answered">0</strong><span>回答数</span></div><div class="stat"><strong id="correct">0</strong><span>正解</span></div><div class="stat"><strong id="rate">0%</strong><span>正答率</span></div><div class="stat"><strong id="pool">0</strong><span>出題候補</span></div></section>
 <section class="card" id="quiz"><div class="meta"><span class="pill" id="kind"></span><span class="pill" id="rel"></span><span class="pill" id="miss"></span></div><div class="qword" id="word">「出題開始」を押してね</div><div id="body"></div><div id="feedback" class="answer hidden"></div><div class="actions"><button class="btn primary hidden" id="check">答え合わせ</button><button class="btn ghost hidden" id="next">次の問題</button></div></section>
@@ -32,6 +32,7 @@ function filtered(){
  let arr=WORDS.slice(), s=$('scope').value;
  if(s==='main') arr=arr.filter(x=>!x.related);
  if(s==='related') arr=arr.filter(x=>x.related);
+ if(s==='unanswered') arr=arr.filter(x=>{const st=stats[keyOf(x)];return !st||((st.correct||0)+(st.wrong||0)===0)});
  if(s==='wrong'||s==='wrong1') arr=arr.filter(x=>getStat(x).wrong>=1);
  if(s==='wrong2') arr=arr.filter(x=>getStat(x).wrong>=2);
  return arr;

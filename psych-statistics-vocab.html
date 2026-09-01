@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>統計英単語｜参考書⑤</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#f4f2ed;--ink:#22262c;--muted:#7a7d82;--line:#d3cfc6;--accent:#5d7698}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif}
+.wrap{max-width:1000px;margin:auto;padding:28px 18px 60px}
+.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+h1{margin:0;font-size:2rem} .sub{color:var(--muted);margin-top:6px;line-height:1.6;font-size:.92rem}
+.toggle{border:0;background:transparent;color:#526986;font-weight:800;cursor:pointer;padding:10px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 10px}
+.pill{border:1px solid #c8c4ba;background:#fbfaf7;border-radius:999px;padding:11px 17px;font-weight:800;color:#334;cursor:pointer}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.type.active{background:#2f3d50;border-color:#2f3d50}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+.stat{border:1px solid var(--line);background:rgba(255,255,255,.62);border-radius:18px;min-height:105px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.stat strong{font-size:1.9rem} .stat span{font-size:.8rem;color:#7f7f7f;margin-top:8px}
+.progress{height:8px;background:#dad6cf;border-radius:99px;overflow:hidden;margin:18px 8px}
+.progress div{height:100%;background:#d66e3f;width:0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 24px}
+.btn{border:1px solid #c9c5bc;background:#faf9f6;border-radius:12px;padding:11px 15px;font-weight:800;color:#405675;cursor:pointer}
+.card{background:rgba(255,255,255,.74);border:1px solid #d9d5cd;border-radius:20px;padding:26px;margin-top:12px}
+.meta,.history,.source{font-size:.8rem;color:#888} .meta{margin-bottom:12px}
+.word{font-size:1.45rem;font-weight:850;line-height:1.5;margin:10px 0 12px}
+.history{margin:10px 0 16px}
+.choices{display:grid;gap:10px}
+.choice{width:100%;text-align:left;border:1px solid #d5d1c8;background:#fff;border-radius:14px;padding:14px;font-size:1rem;cursor:pointer}
+.choice.correct{background:#eaf6ed;border-color:#67a878} .choice.wrong{background:#fff0f0;border-color:#d56b6b}
+.qa{display:flex;gap:10px;flex-wrap:wrap} .qa input{flex:1;min-width:220px;padding:13px;border:1px solid #cdc8be;border-radius:12px;font-size:1rem}
+.feedback{margin-top:15px;padding:14px;border-radius:14px;background:#f4f3f0;line-height:1.65}
+.nav{display:flex;gap:10px;margin-top:18px} .hidden{display:none!important}
+@media(max-width:680px){.wrap{padding:20px 12px 45px}h1{font-size:1.5rem}.card{padding:20px 15px}.stat{min-height:92px}.stat strong{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="top">
+ <div><h1>統計英単語</h1><div class="sub">参考書⑤「心理統計・研究法用語 定義リスト」収録語<br>出題方向は <b>英語 → 日本語</b> のみ</div></div>
+ <button id="toggle" class="toggle">▲ メニューを隠す</button>
+</div>
+
+<section id="menu">
+ <div class="controls">
+  <button class="pill type active" data-type="mc">4択</button>
+  <button class="pill type" data-type="qa">一問一答</button>
+ </div>
+ <div class="controls">
+  <button class="pill active" data-mode="all">通常</button>
+  <button class="pill" data-mode="random">ランダム</button>
+  <button class="pill" data-mode="unanswered">未回答だけ</button>
+  <button class="pill" data-mode="wrongAny">間違えた問題</button>
+  <button class="pill" data-mode="wrong1">1回間違えた</button>
+  <button class="pill" data-mode="wrong2">2回間違えた</button>
+  <button class="pill" data-mode="wrong3">3回以上間違えた</button>
+ </div>
+ <div class="stats">
+  <div class="stat"><strong id="position">0/0</strong><span>現在位置</span></div>
+  <div class="stat"><strong id="correct">0</strong><span>累積正解</span></div>
+  <div class="stat"><strong id="wrong">0</strong><span>累積不正解</span></div>
+  <div class="stat"><strong id="rate">—</strong><span>正答率</span></div>
+ </div>
+ <div class="progress"><div id="bar"></div></div>
+ <div class="actions"><button class="btn" id="reset">記録をリセット</button><button class="btn" id="reshuffle">ランダム順を作り直す</button></div>
+</section>
+
+<section class="card" id="card">
+ <div class="meta"><span id="counter"></span>　<span id="kind"></span></div>
+ <div class="word" id="word"></div>
+ <div class="history" id="history"></div>
+ <div id="body"></div>
+ <div id="feedback" class="feedback hidden"></div>
+ <div class="nav"><button class="btn" id="prev">← 前へ</button><button class="btn" id="next">次へ →</button></div>
+</section>
+<div id="empty" class="hidden" style="text-align:center;padding:40px;color:#777">該当する問題はありません。</div>
+</main>
+<script>
+const BANK=[{"id": "v001", "en": "multiple regression analysis", "jp": "重回帰分析", "choices": ["重回帰分析", "重相関係数", "無作為抽出", "内的妥当性"], "answer": 0}, {"id": "v002", "en": "coefficient of multiple determination", "jp": "重決定係数", "choices": ["定数", "標本分布", "テューキー法", "重決定係数"], "answer": 3}, {"id": "v003", "en": "multiple correlation coefficient", "jp": "重相関係数", "choices": ["バリマックス法", "天井効果", "重相関係数", "内的一貫性"], "answer": 2}, {"id": "v004", "en": "convergent validity", "jp": "収束的妥当性", "choices": ["収束的妥当性", "切断効果", "両側検定", "独立性の検定"], "answer": 0}, {"id": "v005", "en": "dependent variable", "jp": "従属変数", "choices": ["量的研究", "従属変数", "剰余変数", "標本抽出"], "answer": 1}, {"id": "v006", "en": "longitudinal study", "jp": "縦断研究", "choices": ["標準偏回帰係数", "縦断研究", "標準偏差", "折半法"], "answer": 1}, {"id": "v007", "en": "degrees of freedom", "jp": "自由度", "choices": ["第2種の誤り", "標準得点", "自由度", "主効果"], "answer": 2}, {"id": "v008", "en": "main effect", "jp": "主効果", "choices": ["主効果", "非参与観察", "内的妥当性", "外れ値"], "answer": 0}, {"id": "v009", "en": "principal component analysis", "jp": "主成分分析", "choices": ["主成分分析", "相関係数", "多重共線性", "統制"], "answer": 0}, {"id": "v010", "en": "ordinal scale", "jp": "順序尺度", "choices": ["母集団", "標準偏差", "順序尺度", "床効果"], "answer": 2}, {"id": "v011", "en": "extraneous variable", "jp": "剰余変数", "choices": ["量的研究", "要因計画法", "剰余変数", "妥当性"], "answer": 2}, {"id": "v012", "en": "case study", "jp": "事例研究", "choices": ["事例研究", "折半法", "第2種の誤り", "第1種の誤り"], "answer": 0}, {"id": "v013", "en": "confidence interval", "jp": "信頼区間", "choices": ["ノンパラメトリック検定", "信頼区間", "単回帰分析", "直交回転"], "answer": 1}, {"id": "v014", "en": "reliability", "jp": "信頼性", "choices": ["リッカート法", "信頼性", "推測統計法", "尖度"], "answer": 1}, {"id": "v015", "en": "level", "jp": "水準", "choices": ["水準", "非参与観察", "分散", "平均への回帰"], "answer": 0}, {"id": "v016", "en": "inferential statistics", "jp": "推測統計法", "choices": ["単純主効果", "独立性の検定", "平均", "推測統計法"], "answer": 3}, {"id": "v017", "en": "normal distribution", "jp": "正規分布", "choices": ["t検定", "連関", "重決定係数", "正規分布"], "answer": 3}, {"id": "v018", "en": "positive correlation", "jp": "正の相関", "choices": ["統制群", "正の相関", "標準得点", "単純主効果"], "answer": 1}, {"id": "v019", "en": "absolute origin", "jp": "絶対原点", "choices": ["ノンパラメトリック検定", "絶対原点", "独立変数", "順序尺度"], "answer": 1}, {"id": "v020", "en": "cutting effect", "jp": "切断効果", "choices": ["変数", "切断効果", "標本分布", "ヒストグラム"], "answer": 1}, {"id": "v021", "en": "split-half method", "jp": "折半法", "choices": ["直交回転", "天井効果", "独立変数", "折半法"], "answer": 3}, {"id": "v022", "en": "explanation rate", "jp": "説明率", "choices": ["説明率", "p値", "推測統計法", "ダブルバーレル質問"], "answer": 0}, {"id": "v023", "en": "kurtosis", "jp": "尖度", "choices": ["偏差値", "負の相関", "中心極限定理", "尖度"], "answer": 3}, {"id": "v024", "en": "stratified sampling", "jp": "層化抽出法", "choices": ["層化抽出法", "分散分析", "内的妥当性", "リッカート法"], "answer": 0}, {"id": "v025", "en": "correlation association", "jp": "相関関係", "choices": ["偏回帰係数", "t値", "統制", "相関関係"], "answer": 3}, {"id": "v026", "en": "correlation coefficient", "jp": "相関係数", "choices": ["独立性の検定", "相関係数", "t検定", "予測的妥当性"], "answer": 1}, {"id": "v027", "en": "attenuation of correlation", "jp": "相関係数の希薄化", "choices": ["相関係数の希薄化", "予測的妥当性", "標本の大きさ", "主効果"], "answer": 0}, {"id": "v028", "en": "type I error", "jp": "第1種の誤り", "choices": ["外れ値", "第1種の誤り", "自由度", "面接法"], "answer": 1}, {"id": "v029", "en": "control group", "jp": "対照群", "choices": ["偏差", "対照群", "相関係数", "偏相関係数"], "answer": 1}, {"id": "v030", "en": "type II error", "jp": "第2種の誤り", "choices": ["折半法", "適合度の検定", "探索的因子分析", "第2種の誤り"], "answer": 3}, {"id": "v031", "en": "measure of central tendency", "jp": "代表値", "choices": ["非参与観察", "代表値", "被験者間要因", "比率の等質性の検定"], "answer": 1}, {"id": "v032", "en": "alternative hypothesis", "jp": "対立仮説", "choices": ["信頼区間", "対立仮説", "p値", "両側検定"], "answer": 1}, {"id": "v033", "en": "multicollinearity", "jp": "多重共線性", "choices": ["絶対原点", "面接法", "第2種の誤り", "多重共線性"], "answer": 3}, {"id": "v034", "en": "multiple comparison", "jp": "多重比較", "choices": ["弁別的妥当性", "第1種の誤り", "適合度の検定", "多重比較"], "answer": 3}, {"id": "v035", "en": "validity", "jp": "妥当性", "choices": ["中央値", "妥当性", "要因", "2要因分散分析"], "answer": 1}, {"id": "v036", "en": "double-barrelled question", "jp": "ダブルバーレル質問", "choices": ["t検定", "ダブルバーレル質問", "縦断研究", "リッカート法"], "answer": 1}, {"id": "v037", "en": "multivariate analysis", "jp": "多変量解析", "choices": ["多変量解析", "重相関係数", "対照群", "負の相関"], "answer": 0}, {"id": "v038", "en": "dummy variable", "jp": "ダミー変数", "choices": ["重回帰分析", "累積寄与率", "ダミー変数", "分割表"], "answer": 2}, {"id": "v039", "en": "simple regression analysis", "jp": "単回帰分析", "choices": ["面接法", "分散分析", "単回帰分析", "被験者間要因"], "answer": 2}, {"id": "v040", "en": "exploratory factor analysis", "jp": "探索的因子分析", "choices": ["統制", "探索的因子分析", "無作為抽出", "標準化"], "answer": 1}, {"id": "v041", "en": "simple main effect", "jp": "単純主効果", "choices": ["単純主効果", "平均への回帰", "変数", "平行テスト法"], "answer": 0}, {"id": "v042", "en": "median", "jp": "中央値", "choices": ["多変量解析", "被験者", "中央値", "分散"], "answer": 2}, {"id": "v043", "en": "central limit theorem", "jp": "中心極限定理", "choices": ["中心極限定理", "説明率", "予測的妥当性", "プロマックス法"], "answer": 0}, {"id": "v044", "en": "orthogonal factor rotation", "jp": "直交回転", "choices": ["標準誤差", "従属変数", "不偏分散", "直交回転"], "answer": 3}, {"id": "v045", "en": "t-test", "jp": "t検定", "choices": ["尖度", "t検定", "量的研究", "内的一貫性"], "answer": 1}, {"id": "v046", "en": "t-value", "jp": "t値", "choices": ["標本の大きさ", "無作為抽出", "t値", "標本抽出"], "answer": 2}, {"id": "v047", "en": "constant", "jp": "定数", "choices": ["負の相関", "信頼性", "独立性の検定", "定数"], "answer": 3}, {"id": "v048", "en": "test of goodness of fit", "jp": "適合度の検定", "choices": ["パラメトリック検定", "標準化", "適合度の検定", "比率尺度"], "answer": 2}, {"id": "v049", "en": "Tukey's method", "jp": "テューキー法", "choices": ["相関関係", "テューキー法", "ノンパラメトリック検定", "対照群"], "answer": 1}, {"id": "v050", "en": "ceiling effect", "jp": "天井効果", "choices": ["代表値", "説明率", "独立変数", "天井効果"], "answer": 3}, {"id": "v051", "en": "testing statistical hypothesis", "jp": "統計的仮説検定", "choices": ["統計的仮説検定", "中心極限定理", "独立変数", "偏差"], "answer": 0}, {"id": "v052", "en": "control", "jp": "統制", "choices": ["内的一貫性", "量的研究", "度数", "統制"], "answer": 3}, {"id": "v053", "en": "control group", "jp": "統制群", "choices": ["標準正規分布", "予測的妥当性", "絶対原点", "統制群"], "answer": 3}, {"id": "v054", "en": "test of independence", "jp": "独立性の検定", "choices": ["偏回帰係数", "独立性の検定", "統制群", "中央値"], "answer": 1}, {"id": "v055", "en": "independent variable", "jp": "独立変数", "choices": ["信頼性", "ダミー変数", "自由度", "独立変数"], "answer": 3}, {"id": "v056", "en": "frequency", "jp": "度数", "choices": ["偏差値", "度数", "被験者", "多変量解析"], "answer": 1}, {"id": "v057", "en": "frequency table", "jp": "度数分布表", "choices": ["多変量解析", "説明率", "定数", "度数分布表"], "answer": 3}, {"id": "v058", "en": "internal consistency", "jp": "内的一貫性", "choices": ["偏相関係数", "比率の等質性の検定", "内的一貫性", "被験者間要因"], "answer": 2}, {"id": "v059", "en": "internal validity", "jp": "内的妥当性", "choices": ["対立仮説", "内的妥当性", "直交回転", "多重比較"], "answer": 1}, {"id": "v060", "en": "content validity", "jp": "内容的妥当性", "choices": ["連関", "被験者間要因", "内容的妥当性", "偏差"], "answer": 2}, {"id": "v061", "en": "two-way ANOVA", "jp": "2要因分散分析", "choices": ["2要因分散分析", "標準誤差", "信頼区間", "リッカート法"], "answer": 0}, {"id": "v062", "en": "nonparametric test", "jp": "ノンパラメトリック検定", "choices": ["ノンパラメトリック検定", "負の相関", "弁別的妥当性", "相関係数"], "answer": 0}, {"id": "v063", "en": "outlier", "jp": "外れ値", "choices": ["テューキー法", "尖度", "収束的妥当性", "外れ値"], "answer": 3}, {"id": "v064", "en": "parametric test", "jp": "パラメトリック検定", "choices": ["パラメトリック検定", "正規分布", "主効果", "内容的妥当性"], "answer": 0}, {"id": "v065", "en": "varimax method", "jp": "バリマックス法", "choices": ["順序尺度", "標準化", "バリマックス法", "比率の等質性の検定"], "answer": 2}, {"id": "v066", "en": "p-value", "jp": "p値", "choices": ["プロマックス法", "p値", "平均への回帰", "天井効果"], "answer": 1}, {"id": "v067", "en": "subject", "jp": "被験者", "choices": ["中央値", "被験者", "ダミー変数", "相関係数"], "answer": 1}, {"id": "v068", "en": "between subjects factor", "jp": "被験者間要因", "choices": ["対照群", "分散分析", "度数分布表", "被験者間要因"], "answer": 3}, {"id": "v069", "en": "within subjects factor", "jp": "被験者内要因", "choices": ["有意差", "被験者内要因", "要因計画法", "臨界値"], "answer": 1}, {"id": "v070", "en": "nonparticipant observation", "jp": "非参与観察", "choices": ["正の相関", "有意差", "ダブルバーレル質問", "非参与観察"], "answer": 3}, {"id": "v071", "en": "histogram", "jp": "ヒストグラム", "choices": ["ダミー変数", "非参与観察", "バリマックス法", "ヒストグラム"], "answer": 3}, {"id": "v072", "en": "standardization", "jp": "標準化", "choices": ["標準化", "法則定立的研究", "重相関係数", "度数分布表"], "answer": 0}, {"id": "v073", "en": "standard error", "jp": "標準誤差", "choices": ["主効果", "度数分布表", "標準誤差", "独立性の検定"], "answer": 2}, {"id": "v074", "en": "standard normal distribution", "jp": "標準正規分布", "choices": ["標準正規分布", "統制群", "対照群", "被験者間要因"], "answer": 0}, {"id": "v075", "en": "standard score", "jp": "標準得点", "choices": ["予測的妥当性", "標準得点", "相関関係", "ノンパラメトリック検定"], "answer": 1}, {"id": "v076", "en": "standard partial regression coefficient", "jp": "標準偏回帰係数", "choices": ["床効果", "多重共線性", "標準偏回帰係数", "標準誤差"], "answer": 2}, {"id": "v077", "en": "standard deviation", "jp": "標準偏差", "choices": ["正の相関", "標準偏差", "内的妥当性", "縦断研究"], "answer": 1}, {"id": "v078", "en": "sample", "jp": "標本", "choices": ["統制群", "標本", "被験者", "自由度"], "answer": 1}, {"id": "v079", "en": "sampling", "jp": "標本抽出", "choices": ["重相関係数", "標本抽出", "内的妥当性", "被験者内要因"], "answer": 1}, {"id": "v080", "en": "sampling distribution", "jp": "標本分布", "choices": ["非参与観察", "重相関係数", "標本分布", "標準偏差"], "answer": 2}, {"id": "v081", "en": "sample size", "jp": "標本の大きさ", "choices": ["標本の大きさ", "ヒストグラム", "被験者内要因", "要因"], "answer": 0}, {"id": "v082", "en": "ratio scale", "jp": "比率尺度", "choices": ["比率尺度", "t値", "主効果", "度数分布表"], "answer": 0}, {"id": "v083", "en": "test of homogeneity of proportions", "jp": "比率の等質性の検定", "choices": ["比率の等質性の検定", "標本の大きさ", "層化抽出法", "ダブルバーレル質問"], "answer": 0}, {"id": "v084", "en": "phi-coefficient", "jp": "φ係数", "choices": ["相関関係", "偏差値", "折半法", "φ係数"], "answer": 3}, {"id": "v085", "en": "negative correlation", "jp": "負の相関", "choices": ["負の相関", "説明率", "折半法", "連関"], "answer": 0}, {"id": "v086", "en": "unbiased variance", "jp": "不偏分散", "choices": ["比率の等質性の検定", "探索的因子分析", "不偏分散", "予測的妥当性"], "answer": 2}, {"id": "v087", "en": "promax method", "jp": "プロマックス法", "choices": ["要因計画法", "プロマックス法", "t値", "比率尺度"], "answer": 1}, {"id": "v088", "en": "cross table", "jp": "分割表", "choices": ["分割表", "面接法", "信頼性", "標本の大きさ"], "answer": 0}, {"id": "v089", "en": "variance", "jp": "分散", "choices": ["分散", "絶対原点", "被験者内要因", "偏回帰係数"], "answer": 0}, {"id": "v090", "en": "analysis of variance", "jp": "分散分析", "choices": ["単純主効果", "分散分析", "負の相関", "説明率"], "answer": 1}, {"id": "v091", "en": "mean", "jp": "平均", "choices": ["中央値", "平均", "重決定係数", "面接法"], "answer": 1}, {"id": "v092", "en": "regression toward the mean", "jp": "平均への回帰", "choices": ["相関係数", "併存的妥当性", "平均への回帰", "度数"], "answer": 2}, {"id": "v093", "en": "parallel test method", "jp": "平行テスト法", "choices": ["面接法", "平行テスト法", "被験者内要因", "多重比較"], "answer": 1}, {"id": "v094", "en": "concurrent validity", "jp": "併存的妥当性", "choices": ["相関係数の希薄化", "切断効果", "標本抽出", "併存的妥当性"], "answer": 3}, {"id": "v095", "en": "partial regression coefficient", "jp": "偏回帰係数", "choices": ["定数", "偏回帰係数", "量的変数", "中心極限定理"], "answer": 1}, {"id": "v096", "en": "deviation", "jp": "偏差", "choices": ["第1種の誤り", "標本分布", "パラメトリック検定", "偏差"], "answer": 3}, {"id": "v097", "en": "z-score", "jp": "偏差値", "choices": ["度数分布表", "内容的妥当性", "統制群", "偏差値"], "answer": 3}, {"id": "v098", "en": "variable", "jp": "変数", "choices": ["母集団", "切断効果", "変数", "弁別的妥当性"], "answer": 2}, {"id": "v099", "en": "partial correlation coefficient", "jp": "偏相関係数", "choices": ["被験者間要因", "偏相関係数", "無作為抽出", "母集団"], "answer": 1}, {"id": "v100", "en": "discriminant validity", "jp": "弁別的妥当性", "choices": ["従属変数", "相関係数の希薄化", "弁別的妥当性", "正規分布"], "answer": 2}, {"id": "v101", "en": "nomothetic study", "jp": "法則定立的研究", "choices": ["従属変数", "尖度", "法則定立的研究", "多重共線性"], "answer": 2}, {"id": "v102", "en": "population", "jp": "母集団", "choices": ["被験者間要因", "内的妥当性", "量的研究", "母集団"], "answer": 3}, {"id": "v103", "en": "random sampling", "jp": "無作為抽出", "choices": ["併存的妥当性", "剰余変数", "偏回帰係数", "無作為抽出"], "answer": 3}, {"id": "v104", "en": "nominal scale", "jp": "名義尺度", "choices": ["標準偏回帰係数", "自由度", "両側検定", "名義尺度"], "answer": 3}, {"id": "v105", "en": "interview", "jp": "面接法", "choices": ["2要因分散分析", "中央値", "テューキー法", "面接法"], "answer": 3}, {"id": "v106", "en": "significant difference", "jp": "有意差", "choices": ["従属変数", "有意差", "多変量解析", "床効果"], "answer": 1}, {"id": "v107", "en": "level of significance", "jp": "有意水準", "choices": ["平均", "有意水準", "偏差", "剰余変数"], "answer": 1}, {"id": "v108", "en": "floor effect", "jp": "床効果", "choices": ["床効果", "比率尺度", "被験者内要因", "中央値"], "answer": 0}, {"id": "v109", "en": "factor", "jp": "要因", "choices": ["要因", "内的妥当性", "標準得点", "ダミー変数"], "answer": 0}, {"id": "v110", "en": "factorial design", "jp": "要因計画法", "choices": ["妥当性", "要因計画法", "t値", "2要因分散分析"], "answer": 1}, {"id": "v111", "en": "predictive validity", "jp": "予測的妥当性", "choices": ["パラメトリック検定", "重相関係数", "予測的妥当性", "不偏分散"], "answer": 2}, {"id": "v112", "en": "Likert scale", "jp": "リッカート法", "choices": ["t値", "被験者", "リッカート法", "負の相関"], "answer": 2}, {"id": "v113", "en": "two-tailed test", "jp": "両側検定", "choices": ["両側検定", "内容的妥当性", "母集団", "偏回帰係数"], "answer": 0}, {"id": "v114", "en": "quantitative study", "jp": "量的研究", "choices": ["直交回転", "床効果", "標準誤差", "量的研究"], "answer": 3}, {"id": "v115", "en": "quantitative variable", "jp": "量的変数", "choices": ["分散", "標準化", "量的変数", "不偏分散"], "answer": 2}, {"id": "v116", "en": "critical value", "jp": "臨界値", "choices": ["絶対原点", "t検定", "臨界値", "正の相関"], "answer": 2}, {"id": "v117", "en": "cumulative contribution ratio", "jp": "累積寄与率", "choices": ["標本抽出", "切断効果", "累積寄与率", "非参与観察"], "answer": 2}, {"id": "v118", "en": "association", "jp": "連関", "choices": ["平行テスト法", "非参与観察", "連関", "面接法"], "answer": 2}, {"id": "v119", "en": "skewness", "jp": "歪度", "choices": ["外れ値", "歪度", "標本の大きさ", "内的一貫性"], "answer": 1}];
+const KEY='psych_statistics_vocab_20260901_v1';
+const $=id=>document.getElementById(id);
+const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\s　・･,，。．\.\-ー_()（）「」『』]/g,'');
+let state={};try{state=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const rec=id=>state[id]||(state[id]={correct:0,wrong:0,attempts:0});
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+let type='mc',mode='all',pool=[],idx=0,locked=false;
+function build(){
+ let a=BANK.map((_,i)=>i);
+ if(mode==='unanswered')a=a.filter(i=>rec(BANK[i].id).attempts===0);
+ if(mode==='wrongAny')a=a.filter(i=>rec(BANK[i].id).wrong>0);
+ if(mode==='wrong1')a=a.filter(i=>rec(BANK[i].id).wrong===1);
+ if(mode==='wrong2')a=a.filter(i=>rec(BANK[i].id).wrong===2);
+ if(mode==='wrong3')a=a.filter(i=>rec(BANK[i].id).wrong>=3);
+ if(mode==='random')for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+ pool=a;idx=0;render();
+}
+function totals(){let c=0,w=0;BANK.forEach(q=>{let r=rec(q.id);c+=r.correct;w+=r.wrong});return{c,w}}
+function stat(){
+ let t=totals(),n=t.c+t.w;
+ $('correct').textContent=t.c;$('wrong').textContent=t.w;$('rate').textContent=n?Math.round(t.c/n*100)+'%':'—';
+ $('position').textContent=pool.length?(idx+1)+'/'+pool.length:'0/0';
+ $('bar').style.width=pool.length?((idx+1)/pool.length*100)+'%':'0%';
+}
+function render(){
+ stat();
+ if(!pool.length){$('card').classList.add('hidden');$('empty').classList.remove('hidden');return}
+ $('card').classList.remove('hidden');$('empty').classList.add('hidden');
+ let q=BANK[pool[idx]],r=rec(q.id);locked=false;
+ $('counter').textContent='問題 '+(idx+1)+' / '+pool.length;$('kind').textContent=type==='mc'?'4択':'一問一答';
+ $('word').textContent=q.en;$('history').textContent=`この問題の履歴：○ ${r.correct}回 ／ × ${r.wrong}回 ／ 挑戦 ${r.attempts}回`;
+ $('feedback').classList.add('hidden');$('body').innerHTML='';
+ if(type==='mc'){
+  let box=document.createElement('div');box.className='choices';
+  q.choices.forEach((c,j)=>{let b=document.createElement('button');b.className='choice';b.textContent=String.fromCharCode(65+j)+'. '+c;b.onclick=()=>ansMC(q,j,b,box);box.appendChild(b)});
+  $('body').appendChild(box);
+ }else{
+  let f=document.createElement('form');f.className='qa';let inp=document.createElement('input');inp.placeholder='日本語を入力';
+  let b=document.createElement('button');b.className='btn';b.textContent='回答する';b.type='submit';f.append(inp,b);
+  f.onsubmit=e=>{e.preventDefault();ansQA(q,inp.value,inp,b)};$('body').appendChild(f);setTimeout(()=>inp.focus(),0);
+ }
+}
+function fb(ok,q){let f=$('feedback');f.classList.remove('hidden');f.innerHTML=(ok?'<b>○ 正解！</b>':'<b>× 不正解</b>　正解：<b>'+q.jp+'</b>')+'<div class="source">出典：参考書⑤ 定義リスト</div>';stat();let r=rec(q.id);$('history').textContent=`この問題の履歴：○ ${r.correct}回 ／ × ${r.wrong}回 ／ 挑戦 ${r.attempts}回`;}
+function ansMC(q,j,b,box){if(locked)return;locked=true;let r=rec(q.id);r.attempts++;let ok=j===q.answer;ok?r.correct++:r.wrong++;save();[...box.children].forEach((x,k)=>{x.disabled=true;if(k===q.answer)x.classList.add('correct')});if(!ok)b.classList.add('wrong');fb(ok,q)}
+function ansQA(q,v,inp,b){if(locked||!v.trim())return;locked=true;let r=rec(q.id);r.attempts++;let ok=norm(v)===norm(q.jp);ok?r.correct++:r.wrong++;save();inp.disabled=true;b.disabled=true;fb(ok,q)}
+document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{type=b.dataset.type;document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x===b));render()});
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));build()});
+$('next').onclick=()=>{if(pool.length){idx=(idx+1)%pool.length;render()}};$('prev').onclick=()=>{if(pool.length){idx=(idx-1+pool.length)%pool.length;render()}};
+$('reshuffle').onclick=()=>{mode='random';document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x.dataset.mode==='random'));build()};
+$('reset').onclick=()=>{if(confirm('統計英単語の学習記録をリセットしますか？')){state={};save();build()}};
+$('toggle').onclick=()=>{$('menu').classList.toggle('hidden');$('toggle').textContent=$('menu').classList.contains('hidden')?'▼ メニューを表示':'▲ メニューを隠す'};
+build();
+</script>
+</body></html>

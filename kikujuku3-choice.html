@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>キクジュク3 4択問題集</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+button,input,select{font:inherit}.wrap{max-width:900px;margin:auto;padding:16px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px rgba(0,0,0,.04)}
+h1{font-size:1.35rem;margin:0 0 8px}.sub{color:#6b7280;font-size:.9rem;line-height:1.55}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{font-size:.82rem;color:#4b5563}select,input[type=text]{width:100%;min-height:44px;border:1px solid #d1d5db;border-radius:12px;padding:10px;background:#fff}
+.btn{min-height:46px;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:#2563eb;color:#fff}.ghost{background:#eef2ff;color:#1e40af}.danger{background:#fee2e2;color:#991b1b}
+.qword{font-size:1.8rem;font-weight:800;letter-spacing:.01em;word-break:break-word;margin:6px 0 14px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.pill{background:#f3f4f6;border-radius:999px;padding:5px 9px;font-size:.78rem;color:#4b5563}.choices{display:grid;gap:10px}
+.choice{display:block;width:100%;text-align:left;border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:12px;min-height:48px}
+.choice.correct{border-color:#16a34a;background:#f0fdf4}.choice.wrong{border-color:#dc2626;background:#fef2f2}.answer{margin-top:12px;padding:12px;border-radius:12px;background:#f9fafb;line-height:1.6}
+.hidden{display:none}.topbar{display:flex;justify-content:flex-end;margin-bottom:10px}.menuToggle{min-height:42px;border:1px solid #d1d5db;border-radius:12px;background:#fff;padding:8px 12px;font-weight:700;color:#374151}
+.menuHidden{display:none!important}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}.stat strong{display:block;font-size:1.1rem}.stat span{font-size:.75rem;color:#6b7280}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions .btn{flex:1 1 140px}.note{font-size:.8rem;color:#6b7280;margin-top:8px}
+@media(max-width:560px){.controls{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.qword{font-size:1.45rem}}
+</style></head>
+<body><main class="wrap">
+<div class="topbar"><button type="button" class="menuToggle" id="menuToggle">メニューを非表示</button></div>
+<section class="card" id="introCard"><h1>キクジュク3 4択問題集</h1><div class="sub">「キクジュク3.pdf」のDay 23〜33・353〜528をもとにした、GitHub Pagesでそのまま使える1ファイル版です。熟語・定型表現の英語→日本語と日本語→英語を学習できます。未解答・誤答回数別の復習にも対応しています。</div><div class="note">収録：176表現（Day 23〜33）</div></section>
+<section class="card" id="menuCard"><div class="controls">
+<div><label>問題タイプ</label><select id="mode"><option value="ja4">英語 → 日本語（4択）</option><option value="en4">日本語 → 英語（4択）</option></select></div>
+<div><label>出題範囲</label><select id="scope"><option value="all">すべて</option><option value="day23">Day 23</option><option value="day24">Day 24</option><option value="day25">Day 25</option><option value="day26">Day 26</option><option value="day27">Day 27</option><option value="day28">Day 28</option><option value="day29">Day 29</option><option value="day30">Day 30</option><option value="day31">Day 31</option><option value="day32">Day 32</option><option value="day33">Day 33</option><option value="unanswered">☆ 未解答だけ</option><option value="wrong">★ 間違えた問題だけ</option><option value="wrong1">★ 1回以上間違えた問題</option><option value="wrong2">★ 2回以上間違えた問題</option></select></div>
+</div><div class="actions"><button class="btn primary" id="start">出題開始 / 次の問題</button><button class="btn ghost" id="shuffle">ランダムで次へ</button><button class="btn danger" id="reset">学習データをリセット</button></div></section>
+<section class="card stats" id="statsCard"><div class="stat"><strong id="answered">0</strong><span>回答数</span></div><div class="stat"><strong id="correct">0</strong><span>正解</span></div><div class="stat"><strong id="rate">0%</strong><span>正答率</span></div><div class="stat"><strong id="pool">0</strong><span>出題候補</span></div></section>
+<section class="card" id="quiz"><div class="meta"><span class="pill" id="kind"></span><span class="pill" id="day"></span><span class="pill" id="miss"></span></div><div class="qword" id="word">「出題開始」を押してね</div><div id="body"></div><div id="feedback" class="answer hidden"></div><div class="actions"><button class="btn primary hidden" id="check">答え合わせ</button><button class="btn ghost hidden" id="next">次の問題</button></div></section>
+</main><script>
+const WORDS=[{"id":353,"en":"break down","ja":"故障する、動かなくなる","day":23},{"id":354,"en":"burn down","ja":"全焼する","day":23},{"id":355,"en":"shut down A [A down]","ja":"Aを閉鎖する、停止する","day":23},{"id":356,"en":"take down A [A down]","ja":"Aを解体する、取り壊す","day":23},{"id":357,"en":"slow down","ja":"スピードを落とす、減速する","day":23},{"id":358,"en":"cut down A [A down]","ja":"Aを減らす、削減する","day":23},{"id":359,"en":"write down A [A down]","ja":"Aを書き留める","day":23},{"id":360,"en":"get down A [A down]","ja":"Aを書き留める、記録する","day":23},{"id":361,"en":"put down A [A down]","ja":"Aを書き留める、記録する","day":23},{"id":362,"en":"set down A [A down]","ja":"Aを書き留める、記録する","day":23},{"id":363,"en":"settle down","ja":"落ち着く、定住する","day":23},{"id":364,"en":"calm down","ja":"落ち着く、静まる","day":23},{"id":365,"en":"let down A [A down]","ja":"Aを失望させる","day":23},{"id":366,"en":"hold down A [A down]","ja":"Aを抑制する、抑える","day":23},{"id":367,"en":"turn down A [A down]","ja":"Aを断る、拒否する","day":23},{"id":368,"en":"hand down A [A down]","ja":"Aを言い渡す、Aを後世に伝える","day":23},{"id":369,"en":"set in","ja":"始まる、起こる","day":24},{"id":370,"en":"drop in [by, over]","ja":"ちょっと立ち寄る","day":24},{"id":371,"en":"break in","ja":"侵入する、押し入る","day":24},{"id":372,"en":"fill in A [A in]","ja":"Aに必要事項を記入する","day":24},{"id":373,"en":"hand in A [A in]","ja":"Aを提出する","day":24},{"id":374,"en":"take in A [A in]","ja":"Aを理解する、Aをだます","day":24},{"id":375,"en":"bring in A [A in]","ja":"Aをもたらす、導入する","day":24},{"id":376,"en":"turn in A [A in]","ja":"Aを提出する、返却する","day":24},{"id":377,"en":"take over A [A over]","ja":"Aを引き継ぐ","day":24},{"id":378,"en":"turn over A [A over]","ja":"Aをひっくり返す、引き渡す","day":24},{"id":379,"en":"look over A [A over]","ja":"Aにざっと目を通す","day":24},{"id":380,"en":"think over A [A over]","ja":"Aをじっくり考える、熟考する","day":24},{"id":381,"en":"pass away","ja":"死ぬ、亡くなる","day":24},{"id":382,"en":"put away A [A away]","ja":"Aを片づける、しまう","day":24},{"id":383,"en":"go by","ja":"経過する、過ぎる","day":24},{"id":384,"en":"pass by","ja":"通り過ぎる","day":24},{"id":385,"en":"come to do","ja":"～するようになる","day":25},{"id":386,"en":"get to do","ja":"～するようになる","day":25},{"id":387,"en":"happen [chance] to do","ja":"偶然～する、たまたま～する","day":25},{"id":388,"en":"fail to do","ja":"～しそこなう、～しない","day":25},{"id":389,"en":"forget to do","ja":"～するのを忘れる","day":25},{"id":390,"en":"remember to do","ja":"忘れずに～する","day":25},{"id":391,"en":"manage to do","ja":"どうにか～する、うまく～する","day":25},{"id":392,"en":"afford to do","ja":"～する余裕がある","day":25},{"id":393,"en":"apply to A","ja":"Aに申し込む、Aに適用される","day":25},{"id":394,"en":"refer to A","ja":"Aに言及する、触れる","day":25},{"id":395,"en":"occur to A","ja":"Aの心に浮かぶ","day":25},{"id":396,"en":"look forward to A","ja":"Aを楽しみに待つ","day":25},{"id":397,"en":"lead to A","ja":"Aを引き起こす、Aに至る","day":25},{"id":398,"en":"get to A","ja":"Aに到着する","day":25},{"id":399,"en":"amount to A","ja":"合計Aになる、結局Aになる","day":25},{"id":400,"en":"belong to A","ja":"Aに所属する、Aの一員である","day":25},{"id":401,"en":"focus on A","ja":"Aに注意を集中させる","day":26},{"id":402,"en":"work on [upon] A","ja":"Aに取り組む","day":26},{"id":403,"en":"concentrate on A","ja":"Aに努力・注意を集中する","day":26},{"id":404,"en":"reflect on [upon] A","ja":"Aを熟考する、回顧する","day":26},{"id":405,"en":"rely on [upon] A","ja":"Aを信用する、Aに頼る","day":26},{"id":406,"en":"depend on [upon] A","ja":"Aによって決まる、Aに頼る","day":26},{"id":407,"en":"live on A","ja":"Aを食べて生きている、Aで生計を立てる","day":26},{"id":408,"en":"call on [upon] A","ja":"Aを訪問する、Aに頼む","day":26},{"id":409,"en":"search for A","ja":"Aを探す、求める","day":26},{"id":410,"en":"call for A","ja":"Aを求める、要求する","day":26},{"id":411,"en":"look for A","ja":"Aを探す","day":26},{"id":412,"en":"apply for A","ja":"Aを申し込む、応募する","day":26},{"id":413,"en":"care for A","ja":"Aの世話をする、Aを好む","day":26},{"id":414,"en":"send for A","ja":"Aが来るように頼む、Aを呼びにやる","day":26},{"id":415,"en":"prepare for A","ja":"Aに備える","day":26},{"id":416,"en":"make up for A","ja":"Aの埋め合わせをする","day":26},{"id":417,"en":"participate in A","ja":"Aに参加する、加わる","day":27},{"id":418,"en":"major in A","ja":"Aを専攻する","day":27},{"id":419,"en":"deal in A","ja":"Aを売買する、扱う","day":27},{"id":420,"en":"result in A","ja":"Aという結果になる","day":27},{"id":421,"en":"succeed in A","ja":"Aに成功する","day":27},{"id":422,"en":"end in A","ja":"Aという結果になる","day":27},{"id":423,"en":"lie in A","ja":"Aにある、見いだされる","day":27},{"id":424,"en":"believe in A","ja":"Aの存在を信じる","day":27},{"id":425,"en":"change into [to] A","ja":"Aに変化する","day":27},{"id":426,"en":"go into A","ja":"Aに入る、Aを詳しく調べる","day":27},{"id":427,"en":"get into A","ja":"Aに入る、Aの中に入る","day":27},{"id":428,"en":"fall into A","ja":"Aに陥る","day":27},{"id":429,"en":"enter into A","ja":"A（契約・関係など）を結ぶ","day":27},{"id":430,"en":"come into A","ja":"Aになる、Aに入る","day":27},{"id":431,"en":"turn into A","ja":"Aに変わる","day":27},{"id":432,"en":"burst into A","ja":"突然Aし始める、Aを突然始める","day":27},{"id":433,"en":"deal with A","ja":"Aを処理する、Aを扱う","day":28},{"id":434,"en":"interfere with A","ja":"Aを妨げる、邪魔する","day":28},{"id":435,"en":"part with A","ja":"Aを手放す、Aと別れる","day":28},{"id":436,"en":"agree with A","ja":"Aと意見が一致する、Aに同意する","day":28},{"id":437,"en":"get along with A","ja":"Aとうまくやっていく","day":28},{"id":438,"en":"correspond with A","ja":"Aと文通する","day":28},{"id":439,"en":"compete with [against] A","ja":"Aと競う、競争する","day":28},{"id":440,"en":"do with A","ja":"Aで済ませる、Aで間に合わせる","day":28},{"id":441,"en":"come from A","ja":"Aの出身である、Aに由来する","day":28},{"id":442,"en":"hear from A","ja":"Aから便りをもらう","day":28},{"id":443,"en":"result from A","ja":"Aに起因する、Aが原因である","day":28},{"id":444,"en":"recover from A","ja":"Aから回復する","day":28},{"id":445,"en":"graduate from A","ja":"A（学校）を卒業する","day":28},{"id":446,"en":"differ from A","ja":"Aと異なる","day":28},{"id":447,"en":"suffer from A","ja":"Aに苦しむ、Aに悩む","day":28},{"id":448,"en":"refrain from A","ja":"Aを差し控える","day":28},{"id":449,"en":"allow A to do","ja":"Aに～することを許可する","day":29},{"id":450,"en":"want A to do","ja":"Aに～してもらいたい","day":29},{"id":451,"en":"enable A to do","ja":"Aに～できるようにする","day":29},{"id":452,"en":"encourage A to do","ja":"Aを～するよう励ます","day":29},{"id":453,"en":"ask A to do","ja":"Aに～するように頼む","day":29},{"id":454,"en":"tell A to do","ja":"Aに～しろと言う","day":29},{"id":455,"en":"get A to do","ja":"Aに～させる、～してもらう","day":29},{"id":456,"en":"cause A to do","ja":"Aに～させる、～する原因となる","day":29},{"id":457,"en":"add A to B","ja":"AをBに加える","day":29},{"id":458,"en":"apply A to B","ja":"AをBに応用する、当てはめる","day":29},{"id":459,"en":"leave A to B","ja":"AをBに任せる","day":29},{"id":460,"en":"attach A to B","ja":"AをBにくっつける、結びつける","day":29},{"id":461,"en":"devote A to B","ja":"AをBにささげる","day":29},{"id":462,"en":"owe A to B","ja":"AをBのおかげと思う、BにAを負う","day":29},{"id":463,"en":"compare A to [with] B","ja":"AをBと比較する、AをBに例える","day":29},{"id":464,"en":"prefer A to B","ja":"BよりもAを好む","day":29},{"id":465,"en":"focus A on B","ja":"A（注意など）をBに集中させる","day":30},{"id":466,"en":"spend A on B","ja":"A（金・時間など）をBに使う","day":30},{"id":467,"en":"force A on [upon] B","ja":"AをBに押しつける","day":30},{"id":468,"en":"blame A on B","ja":"AをBの責任にする、Bのせいにする","day":30},{"id":469,"en":"concentrate A on B","ja":"AをBに集中する","day":30},{"id":470,"en":"base A on [upon] B","ja":"AをBに基づかせる","day":30},{"id":471,"en":"advise A on B","ja":"AにBについて助言する","day":30},{"id":472,"en":"congratulate A on B","ja":"AにBのことで祝う","day":30},{"id":473,"en":"provide A for B","ja":"AをBに供給する","day":30},{"id":474,"en":"ask A for B","ja":"AにBを求める、頼む","day":30},{"id":475,"en":"take A for B","ja":"AをBだと思う","day":30},{"id":476,"en":"mistake A for B","ja":"AをBと間違える","day":30},{"id":477,"en":"exchange A for B","ja":"AをBと交換する","day":30},{"id":478,"en":"substitute A for B","ja":"AをBの代わりに用いる","day":30},{"id":479,"en":"blame A for B","ja":"AをBのことで非難する","day":30},{"id":480,"en":"punish A for B","ja":"AをBのかどで罰する","day":30},{"id":481,"en":"inform A of [about] B","ja":"AにBについて知らせる","day":31},{"id":482,"en":"assure A of B","ja":"AにBを保証する","day":31},{"id":483,"en":"remind A of [about] B","ja":"AにBを思い出させる","day":31},{"id":484,"en":"accuse A of B","ja":"AをBのかどで告発する、非難する","day":31},{"id":485,"en":"suspect A of B","ja":"AにBの容疑をかける","day":31},{"id":486,"en":"clear A of B","ja":"AからB（疑いなど）を取り除く","day":31},{"id":487,"en":"rob A of B","ja":"AからBを奪う、強奪する","day":31},{"id":488,"en":"deprive A of B","ja":"AからBを奪う","day":31},{"id":489,"en":"turn A into B","ja":"AをBに変える","day":31},{"id":490,"en":"convert A into B","ja":"AをBに変える","day":31},{"id":491,"en":"change A into B","ja":"AをBに変える","day":31},{"id":492,"en":"make A into B","ja":"AをBにする","day":31},{"id":493,"en":"transform A into B","ja":"AをBに変形・変換させる","day":31},{"id":494,"en":"divide A into B","ja":"AをBに分ける","day":31},{"id":495,"en":"put A into B","ja":"AをBに翻訳する、言い換える","day":31},{"id":496,"en":"translate A into B","ja":"AをBに翻訳する","day":31},{"id":497,"en":"provide A with B","ja":"AにBを供給する","day":32},{"id":498,"en":"fill A with B","ja":"AをBでいっぱいにする、満たす","day":32},{"id":499,"en":"share A with B","ja":"AをBと共有する、分かち合う","day":32},{"id":500,"en":"help A with B","ja":"AのBを手伝う","day":32},{"id":501,"en":"replace A with B","ja":"AをBと取り換える","day":32},{"id":502,"en":"present A with B","ja":"AにBを贈る、提示する","day":32},{"id":503,"en":"associate A with B","ja":"AをBと結びつけて考える","day":32},{"id":504,"en":"supply A with B","ja":"AにBを供給する","day":32},{"id":505,"en":"see A as B","ja":"AをBと見なす、考える","day":32},{"id":506,"en":"view A as B","ja":"AをBと見なす、考える","day":32},{"id":507,"en":"regard A as B","ja":"AをBと見なす、考える","day":32},{"id":508,"en":"refer to A as B","ja":"AをBと呼ぶ","day":32},{"id":509,"en":"describe A as B","ja":"AをBだと言う、評する","day":32},{"id":510,"en":"think of A as B","ja":"AをBと考える、見なす","day":32},{"id":511,"en":"accept A as B","ja":"AをBとして容認する、受け入れる","day":32},{"id":512,"en":"recognize A as B","ja":"AをBだと認める","day":32},{"id":513,"en":"be likely to do","ja":"～しそうである","day":33},{"id":514,"en":"be ready to do","ja":"～する用意ができている","day":33},{"id":515,"en":"be free to do","ja":"自由に～できる","day":33},{"id":516,"en":"be sure [certain] to do","ja":"きっと～する、必ず～する","day":33},{"id":517,"en":"be willing to do","ja":"快く～する、～するのをいとわない","day":33},{"id":518,"en":"be supposed to do","ja":"～することになっている","day":33},{"id":519,"en":"be forced to do","ja":"～せざるを得ない","day":33},{"id":520,"en":"be compelled to do","ja":"～せざるを得ない","day":33},{"id":521,"en":"be used to A","ja":"Aに慣れている","day":33},{"id":522,"en":"be accustomed to A","ja":"Aに慣れている","day":33},{"id":523,"en":"be opposed to A","ja":"Aに反対している","day":33},{"id":524,"en":"be subject to A","ja":"Aに服従している、Aを受けやすい","day":33},{"id":525,"en":"be familiar to A","ja":"Aによく知られている","day":33},{"id":526,"en":"be similar to A","ja":"Aと似ている","day":33},{"id":527,"en":"be equal to A","ja":"Aと等しい、Aに匹敵する","day":33},{"id":528,"en":"be superior to A","ja":"Aより優れている、勝っている","day":33}];
+const STORAGE="kikujuku3_choice_stats", MENUKEY="kikujuku3_choice_menu_hidden";
+
+const $=id=>document.getElementById(id);
+let stats=JSON.parse(localStorage.getItem(STORAGE)||'{}');
+let current=null,currentMode=null;
+let session={answered:0,correct:0};
+
+function keyOf(x,mode=currentMode){return mode+'::'+x.id}
+function getStat(x,mode=currentMode){return stats[keyOf(x,mode)]||{correct:0,wrong:0}}
+function save(){localStorage.setItem(STORAGE,JSON.stringify(stats))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function pool(){
+ let arr=WORDS.slice(), s=$('scope').value;
+ if(/^day\d+$/.test(s)){const d=Number(s.replace('day',''));arr=arr.filter(x=>x.day===d)}
+ if(s==='unanswered') arr=arr.filter(x=>{const st=getStat(x);return st.correct===0&&st.wrong===0});
+ if(s==='wrong'||s==='wrong1') arr=arr.filter(x=>getStat(x).wrong>=1);
+ if(s==='wrong2') arr=arr.filter(x=>getStat(x).wrong>=2);
+ return arr;
+}
+function updateStats(){
+ const p=pool(); $('pool').textContent=p.length; $('answered').textContent=session.answered; $('correct').textContent=session.correct;
+ $('rate').textContent=session.answered?Math.round(session.correct/session.answered*100)+'%':'0%';
+}
+function sample(arr,n,exclude){
+ let a=arr.filter(x=>x!==exclude).slice().sort(()=>Math.random()-.5);
+ return a.slice(0,n);
+}
+function nextQ(){
+ currentMode=$('mode').value;
+ const p=pool();
+ if(!p.length){$('word').textContent='該当する問題がありません';$('body').innerHTML='';$('feedback').classList.add('hidden');$('check').classList.add('hidden');$('next').classList.add('hidden');updateStats();return}
+ current=p[Math.floor(Math.random()*p.length)];
+ $('kind').textContent=currentMode.startsWith('ja')?'英語 → 日本語':'日本語 → 英語';
+ $('day').textContent='Day '+current.day;
+ const st=getStat(current); $('miss').textContent='誤答 '+st.wrong+'回';
+ $('feedback').classList.add('hidden');$('feedback').innerHTML='';$('check').classList.add('hidden');$('next').classList.add('hidden');
+ renderBody();updateStats();
+}
+function mark(ok){
+ let s=getStat(current); if(ok)s.correct++;else s.wrong++; stats[keyOf(current)]=s; save();
+ session.answered++; if(ok)session.correct++; updateStats(); $('miss').textContent='誤答 '+s.wrong+'回'; $('next').classList.remove('hidden')
+}
+function showFeedback(ok,text){$('feedback').classList.remove('hidden');$('feedback').innerHTML=`<strong>${ok?'○ 正解':'× 不正解'}</strong><br>${esc(text)}`}
+$('start').addEventListener('click',nextQ);$('shuffle').addEventListener('click',nextQ);$('next').addEventListener('click',nextQ);$('scope').addEventListener('change',updateStats);$('mode').addEventListener('change',()=>{if(current)nextQ()});
+$('reset').addEventListener('click',()=>{if(confirm('正答・誤答の学習データをすべて消しますか？')){stats={};session={answered:0,correct:0};save();updateStats();nextQ()}});
+let menuIsHidden=localStorage.getItem(MENUKEY)==='1';
+function applyMenuVisibility(){['introCard','menuCard','statsCard'].forEach(id=>$(id).classList.toggle('menuHidden',menuIsHidden));$('menuToggle').textContent=menuIsHidden?'メニューを表示':'メニューを非表示'}
+$('menuToggle').addEventListener('click',()=>{menuIsHidden=!menuIsHidden;localStorage.setItem(MENUKEY,menuIsHidden?'1':'0');applyMenuVisibility()});
+applyMenuVisibility();updateStats();
+
+function renderBody(){
+ const b=$('body'); b.innerHTML='';
+ if(currentMode==='ja4'){
+   $('word').textContent=current.en;
+   let opts=[current,...sample(WORDS,3,current)].sort(()=>Math.random()-.5);
+   const wrap=document.createElement('div');wrap.className='choices';
+   opts.forEach(x=>{let btn=document.createElement('button');btn.className='choice';btn.textContent=x.ja;btn.addEventListener('click',()=>grade(btn,x===current,wrap,'ja'));wrap.appendChild(btn)});b.appendChild(wrap);
+ }else{
+   $('word').textContent=current.ja;
+   let opts=[current,...sample(WORDS,3,current)].sort(()=>Math.random()-.5);
+   const wrap=document.createElement('div');wrap.className='choices';
+   opts.forEach(x=>{let btn=document.createElement('button');btn.className='choice';btn.textContent=x.en;btn.addEventListener('click',()=>grade(btn,x===current,wrap,'en'));wrap.appendChild(btn)});b.appendChild(wrap);
+ }
+}
+function grade(btn,ok,wrap,dir){
+ [...wrap.children].forEach(x=>x.disabled=true);btn.classList.add(ok?'correct':'wrong');
+ const ans=dir==='ja'?current.ja:current.en;
+ if(!ok){[...wrap.children].find(x=>x.textContent===ans)?.classList.add('correct')}
+ showFeedback(ok,'正解：'+ans);mark(ok)
+}
+
+</script></body></html>

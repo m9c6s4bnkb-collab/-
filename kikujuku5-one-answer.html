@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>キクジュク5 一問一答</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+button,input,select{font:inherit}.wrap{max-width:900px;margin:auto;padding:16px}.card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px rgba(0,0,0,.04)}
+h1{font-size:1.35rem;margin:0 0 8px}.sub{color:#6b7280;font-size:.9rem;line-height:1.55}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{font-size:.82rem;color:#4b5563}select,input[type=text]{width:100%;min-height:44px;border:1px solid #d1d5db;border-radius:12px;padding:10px;background:#fff}
+.btn{min-height:46px;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}.primary{background:#2563eb;color:#fff}.ghost{background:#eef2ff;color:#1e40af}.danger{background:#fee2e2;color:#991b1b}
+.qword{font-size:1.8rem;font-weight:800;letter-spacing:.01em;word-break:break-word;margin:6px 0 14px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.pill{background:#f3f4f6;border-radius:999px;padding:5px 9px;font-size:.78rem;color:#4b5563}.choices{display:grid;gap:10px}
+.choice{display:block;width:100%;text-align:left;border:1px solid #d1d5db;background:#fff;border-radius:12px;padding:12px;min-height:48px}
+.choice.correct{border-color:#16a34a;background:#f0fdf4}.choice.wrong{border-color:#dc2626;background:#fef2f2}.answer{margin-top:12px;padding:12px;border-radius:12px;background:#f9fafb;line-height:1.6}
+.hidden{display:none}.topbar{display:flex;justify-content:flex-end;margin-bottom:10px}.menuToggle{min-height:42px;border:1px solid #d1d5db;border-radius:12px;background:#fff;padding:8px 12px;font-weight:700;color:#374151}
+.menuHidden{display:none!important}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}.stat strong{display:block;font-size:1.1rem}.stat span{font-size:.75rem;color:#6b7280}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions .btn{flex:1 1 140px}.note{font-size:.8rem;color:#6b7280;margin-top:8px}
+@media(max-width:560px){.controls{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.qword{font-size:1.45rem}}
+</style></head>
+<body><main class="wrap">
+<div class="topbar"><button type="button" class="menuToggle" id="menuToggle">メニューを非表示</button></div>
+<section class="card" id="introCard"><h1>キクジュク5 一問一答</h1><div class="sub">「キクジュク5.pdf」のDay 45〜49・713〜784をもとにした、GitHub Pagesでそのまま使える1ファイル版です。熟語・定型表現の英語→日本語と日本語→英語を学習できます。未解答・誤答回数別の復習にも対応しています。</div><div class="note">収録：72表現（Day 45〜49）</div></section>
+<section class="card" id="menuCard"><div class="controls">
+<div><label>問題タイプ</label><select id="mode"><option value="ja1">英語 → 日本語（一問一答）</option><option value="en1">日本語 → 英語（一問一答）</option></select></div>
+<div><label>出題範囲</label><select id="scope"><option value="all">すべて</option><option value="day45">Day 45</option><option value="day46">Day 46</option><option value="day47">Day 47</option><option value="day48">Day 48</option><option value="day49">Day 49</option><option value="unanswered">☆ 未解答だけ</option><option value="wrong">★ 間違えた問題だけ</option><option value="wrong1">★ 1回以上間違えた問題</option><option value="wrong2">★ 2回以上間違えた問題</option></select></div>
+</div><div class="actions"><button class="btn primary" id="start">出題開始 / 次の問題</button><button class="btn ghost" id="shuffle">ランダムで次へ</button><button class="btn danger" id="reset">学習データをリセット</button></div></section>
+<section class="card stats" id="statsCard"><div class="stat"><strong id="answered">0</strong><span>回答数</span></div><div class="stat"><strong id="correct">0</strong><span>正解</span></div><div class="stat"><strong id="rate">0%</strong><span>正答率</span></div><div class="stat"><strong id="pool">0</strong><span>出題候補</span></div></section>
+<section class="card" id="quiz"><div class="meta"><span class="pill" id="kind"></span><span class="pill" id="day"></span><span class="pill" id="miss"></span></div><div class="qword" id="word">「出題開始」を押してね</div><div id="body"></div><div id="feedback" class="answer hidden"></div><div class="actions"><button class="btn primary hidden" id="check">答え合わせ</button><button class="btn ghost hidden" id="next">次の問題</button></div></section>
+</main><script>
+const WORDS=[{"id":713,"en":"so that ～","ja":"～するために、そうすれば～","day":45},{"id":714,"en":"every [each] time ～","ja":"～する時はいつも、～するたびに","day":45},{"id":715,"en":"as [so] long as ～","ja":"～する限りは、～である限りは","day":45},{"id":716,"en":"in case ～","ja":"～の場合に備えて、もし～ならば","day":45},{"id":717,"en":"as if [though] ～","ja":"まるで～かのように","day":45},{"id":718,"en":"now that ～","ja":"今や～だから、～である以上","day":45},{"id":719,"en":"as [so] far as ～","ja":"～に関する限りでは","day":45},{"id":720,"en":"by the time ～","ja":"～する時までには","day":45},{"id":721,"en":"in the world","ja":"一体全体、決して","day":46},{"id":722,"en":"at all","ja":"少しも、全然；そもそも；いやしくも、とにかく；ともかく","day":46},{"id":723,"en":"no longer A","ja":"もはやAでない","day":46},{"id":724,"en":"far from A","ja":"決してAでない、Aにはほど遠い","day":46},{"id":725,"en":"on earth","ja":"一体全体、全く、ちっとも","day":46},{"id":726,"en":"all but A","ja":"ほとんどA","day":46},{"id":727,"en":"much [still] less A","ja":"ましてやAではない","day":46},{"id":728,"en":"by far","ja":"はるかに、断然、ずっと","day":46},{"id":729,"en":"by no means A","ja":"決してAでない、とんでもない","day":46},{"id":730,"en":"as good as A","ja":"ほとんどA、Aも同然","day":46},{"id":731,"en":"nothing but A","ja":"Aにすぎない、ただAだけ","day":46},{"id":732,"en":"above all (else)","ja":"何よりも、とりわけ、中でも","day":46},{"id":733,"en":"anything but A","ja":"少しもAでない、Aどころでない","day":46},{"id":734,"en":"all [only] too A","ja":"あまりにもA過ぎる","day":46},{"id":735,"en":"most of all","ja":"何よりも、とりわけ","day":46},{"id":736,"en":"by all means","ja":"必ず、ぜひ；ぜひどうぞ、もちろん","day":46},{"id":737,"en":"at (the) least","ja":"少なくとも","day":47},{"id":738,"en":"a number of A","ja":"相当数のA、多数のA","day":47},{"id":739,"en":"a lot [lots] of A","ja":"たくさんのA","day":47},{"id":740,"en":"as many A","ja":"同じ数だけのA、同数のA","day":47},{"id":741,"en":"a couple of A","ja":"2、3のA、いくらかのA","day":47},{"id":742,"en":"plenty of A","ja":"十分なA、たくさんのA","day":47},{"id":743,"en":"a bit of A","ja":"少しのA、わずかのA","day":47},{"id":744,"en":"dozens of A","ja":"数十のA、多数のA","day":47},{"id":745,"en":"no more than A","ja":"わずかA、たったA","day":47},{"id":746,"en":"a great [good] deal of A","ja":"多量のA、相当量のA、たくさんのA","day":47},{"id":747,"en":"a handful of A","ja":"一握りのA、少数のA","day":47},{"id":748,"en":"at (the) most","ja":"多くても、せいぜい","day":47},{"id":749,"en":"quite a few (A)","ja":"かなり多数（のA）、相当数（のA）","day":47},{"id":750,"en":"not more than A","ja":"多くてもA、せいぜいA","day":47},{"id":751,"en":"no less than A","ja":"Aほども多くの、実にAも","day":47},{"id":752,"en":"not less than A","ja":"少なくともA","day":47},{"id":753,"en":"both A and B","ja":"AもBも両方とも","day":48},{"id":754,"en":"more A than B","ja":"BというよりむしろA","day":48},{"id":755,"en":"A rather than B","ja":"BよりもむしろA、BではなくてA","day":48},{"id":756,"en":"either A or B","ja":"AかBか、AかBのどちらか","day":48},{"id":757,"en":"not A but B","ja":"AでなくてB","day":48},{"id":758,"en":"neither A nor B","ja":"AでもBでもない","day":48},{"id":759,"en":"not only A but also B","ja":"AだけでなくBもまた","day":48},{"id":760,"en":"not so much A as B","ja":"AではなくむしろB、AというよりむしろB","day":48},{"id":761,"en":"for oneself","ja":"自分のために、独力で、自分で","day":48},{"id":762,"en":"(all) by oneself","ja":"独りぼっちで、自分だけで、独力で","day":48},{"id":763,"en":"enjoy oneself","ja":"愉快に過ごす、楽しむ","day":48},{"id":764,"en":"help oneself","ja":"自分で取って食べる、勝手に取る","day":48},{"id":765,"en":"have A to oneself","ja":"Aを独り占めする、Aを1人で使う","day":48},{"id":766,"en":"keep A to oneself","ja":"Aを秘密にしておく、Aを人に話さない","day":48},{"id":767,"en":"behave oneself","ja":"行儀よくする、振る舞う","day":48},{"id":768,"en":"make oneself understood","ja":"自分の考え・言葉を人に分からせる","day":48},{"id":769,"en":"What ～ for?","ja":"なぜ～、どうして～、何の目的で～","day":49},{"id":770,"en":"Why not ～?","ja":"～したらどうですか？、なぜ～しないのですか？","day":49},{"id":771,"en":"What if ～?","ja":"～したらどうなるだろう？、～したらどうですか？","day":49},{"id":772,"en":"How [What] about A?","ja":"Aはどうですか？、Aについてどう思いますか？","day":49},{"id":773,"en":"That's why ～.","ja":"そういうわけで～だ、それが～の理由だ","day":49},{"id":774,"en":"Why don't you [we] ～?","ja":"～したらどうですか？","day":49},{"id":775,"en":"How come ～?","ja":"どうして～、なぜ～","day":49},{"id":776,"en":"The fact is (that) ～","ja":"実は～だ、本当は～だ","day":49},{"id":777,"en":"What is A like?","ja":"Aはどのようなもの［人］ですか？","day":49},{"id":778,"en":"It is said that ～","ja":"～だと言われている","day":49},{"id":779,"en":"It goes without saying that ～.","ja":"～は言うまでもない","day":49},{"id":780,"en":"It is (high) time (that) ～.","ja":"そろそろ～の時間である","day":49},{"id":781,"en":"It is no wonder (that) ～.","ja":"～は少しも不思議ではない、～なのは当たり前だ","day":49},{"id":782,"en":"What do you say to A?","ja":"Aはどうですか？","day":49},{"id":783,"en":"It is not long before ～","ja":"程なく～、すぐに～","day":49},{"id":784,"en":"There is no doing.","ja":"～することはできない","day":49}];
+const STORAGE="kikujuku5_oneanswer_stats", MENUKEY="kikujuku5_oneanswer_menu_hidden";
+
+const $=id=>document.getElementById(id);
+let stats=JSON.parse(localStorage.getItem(STORAGE)||'{}');
+let current=null,currentMode=null;
+let session={answered:0,correct:0};
+
+function keyOf(x,mode=currentMode){return mode+'::'+x.id}
+function getStat(x,mode=currentMode){return stats[keyOf(x,mode)]||{correct:0,wrong:0}}
+function save(){localStorage.setItem(STORAGE,JSON.stringify(stats))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function pool(){
+ let arr=WORDS.slice(), s=$('scope').value;
+ if(/^day\d+$/.test(s)){const d=Number(s.replace('day',''));arr=arr.filter(x=>x.day===d)}
+ if(s==='unanswered') arr=arr.filter(x=>{const st=getStat(x);return st.correct===0&&st.wrong===0});
+ if(s==='wrong'||s==='wrong1') arr=arr.filter(x=>getStat(x).wrong>=1);
+ if(s==='wrong2') arr=arr.filter(x=>getStat(x).wrong>=2);
+ return arr;
+}
+function updateStats(){
+ const p=pool(); $('pool').textContent=p.length; $('answered').textContent=session.answered; $('correct').textContent=session.correct;
+ $('rate').textContent=session.answered?Math.round(session.correct/session.answered*100)+'%':'0%';
+}
+function sample(arr,n,exclude){
+ let a=arr.filter(x=>x!==exclude).slice().sort(()=>Math.random()-.5);
+ return a.slice(0,n);
+}
+function nextQ(){
+ currentMode=$('mode').value;
+ const p=pool();
+ if(!p.length){$('word').textContent='該当する問題がありません';$('body').innerHTML='';$('feedback').classList.add('hidden');$('check').classList.add('hidden');$('next').classList.add('hidden');updateStats();return}
+ current=p[Math.floor(Math.random()*p.length)];
+ $('kind').textContent=currentMode.startsWith('ja')?'英語 → 日本語':'日本語 → 英語';
+ $('day').textContent='Day '+current.day;
+ const st=getStat(current); $('miss').textContent='誤答 '+st.wrong+'回';
+ $('feedback').classList.add('hidden');$('feedback').innerHTML='';$('check').classList.add('hidden');$('next').classList.add('hidden');
+ renderBody();updateStats();
+}
+function mark(ok){
+ let s=getStat(current); if(ok)s.correct++;else s.wrong++; stats[keyOf(current)]=s; save();
+ session.answered++; if(ok)session.correct++; updateStats(); $('miss').textContent='誤答 '+s.wrong+'回'; $('next').classList.remove('hidden')
+}
+function showFeedback(ok,text){$('feedback').classList.remove('hidden');$('feedback').innerHTML=`<strong>${ok?'○ 正解':'× 不正解'}</strong><br>${esc(text)}`}
+$('start').addEventListener('click',nextQ);$('shuffle').addEventListener('click',nextQ);$('next').addEventListener('click',nextQ);$('scope').addEventListener('change',updateStats);$('mode').addEventListener('change',()=>{if(current)nextQ()});
+$('reset').addEventListener('click',()=>{if(confirm('正答・誤答の学習データをすべて消しますか？')){stats={};session={answered:0,correct:0};save();updateStats();nextQ()}});
+let menuIsHidden=localStorage.getItem(MENUKEY)==='1';
+function applyMenuVisibility(){['introCard','menuCard','statsCard'].forEach(id=>$(id).classList.toggle('menuHidden',menuIsHidden));$('menuToggle').textContent=menuIsHidden?'メニューを表示':'メニューを非表示'}
+$('menuToggle').addEventListener('click',()=>{menuIsHidden=!menuIsHidden;localStorage.setItem(MENUKEY,menuIsHidden?'1':'0');applyMenuVisibility()});
+applyMenuVisibility();updateStats();
+
+function renderBody(){
+ const b=$('body'); b.innerHTML='';
+ if(currentMode==='ja1'){
+   $('word').textContent=current.en;
+   b.innerHTML='<input id="textAns" type="text" placeholder="日本語訳を入力"><div class="note">表記ゆれがあるため、答えを表示したあと自分で正誤判定します。</div>';
+ }else{
+   $('word').textContent=current.ja;
+   b.innerHTML='<input id="textAns" type="text" placeholder="英語表現を入力"><div class="note">A・B・～などの表記も含め、答えを表示したあと自分で正誤判定します。</div>';
+ }
+ $('check').classList.remove('hidden');$('check').textContent='答えを見る';$('check').onclick=reveal;
+}
+function reveal(){
+ const ans=currentMode==='ja1'?current.ja:current.en;
+ $('feedback').classList.remove('hidden');
+ $('feedback').innerHTML=`<strong>答え：</strong>${esc(ans)}<div class="actions"><button type="button" class="btn primary" id="selfYes">正解にする</button><button type="button" class="btn danger" id="selfNo">不正解にする</button></div>`;
+ $('check').classList.add('hidden');
+ $('selfYes').onclick=()=>selfMark(true);$('selfNo').onclick=()=>selfMark(false)
+}
+function selfMark(ok){mark(ok);$('selfYes').disabled=true;$('selfNo').disabled=true}
+
+</script></body></html>
